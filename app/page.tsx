@@ -2,10 +2,8 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { Plus, Edit2, Star } from "lucide-react";
-import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Edit2, LayoutIcon, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Bookmark {
   id: string;
@@ -148,8 +147,8 @@ export default function NewTabPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-2">
-            <Star className="w-6 h-6 text-yellow-400" />
-            <h1 className="text-2xl font-bold text-white">My Bookmarks</h1>
+            <LayoutIcon className="w-6 h-6 text-yellow-400" />
+            <h1 className="text-2xl font-bold text-white">New Tab</h1>
           </div>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -238,13 +237,11 @@ export default function NewTabPage() {
                   }
                 }}
               >
-                <div className="w-12 h-12 mb-3 flex items-center justify-center">
+                <div className="w-12 h-12 items-center justify-center">
                   {bookmark.favicon ? (
-                    <Image
+                    <img
                       src={bookmark.favicon || "/placeholder.svg"}
                       alt={bookmark.title}
-                      width={48}
-                      height={48}
                       className="w-12 h-12 rounded-lg"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
