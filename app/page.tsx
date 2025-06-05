@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -165,11 +166,19 @@ export default function NewTabPage() {
                 Add Bookmark
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-gray-800 border-gray-700">
+            <DialogContent aria-describedby="dialog-description">
               <DialogHeader>
                 <DialogTitle className="text-white">
                   {editingBookmark ? "Edit Bookmark" : "Add New Bookmark"}
                 </DialogTitle>
+                <DialogDescription
+                  id="dialog-description"
+                  className="text-gray-400"
+                >
+                  {editingBookmark
+                    ? "Update your bookmark details below."
+                    : "Add a new bookmark to your collection."}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>

@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Actually Good New Tab",
+  "version": "0.1.0",
+  "description": "A customizable new tab page with persistent bookmarks",
+  "permissions": ["storage", "bookmarks", "scripting", "webNavigation"],
+  "host_permissions": ["<all_urls>"],
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
+}
