@@ -42,29 +42,60 @@ export default function NewTabPage() {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
 
-  // Load bookmarks from localStorage on mount
+  // Load bookmarks from Chrome storage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("chrome-bookmarks");
-    if (saved) {
-      const parsedBookmarks = JSON.parse(saved);
-      setBookmarks(parsedBookmarks);
-      // Fetch favicons for loaded bookmarks
-      parsedBookmarks.forEach((bookmark: Bookmark) => {
-        if (!bookmark.favicon) {
+    const storageKey = "bookmarks";
+    if (process.env.NODE_ENV === "development") {
+      const storedBookmarks = localStorage.getItem(storageKey);
+      if (storedBookmarks) {
+        setBookmarks(JSON.parse(storedBookmarks));
+        // Fetch favicons for loaded bookmarks
+        JSON.parse(storedBookmarks).forEach((bookmark: Bookmark) => {
+          if (!bookmark.favicon) {
+            fetchFavicon(bookmark.url, bookmark.id);
+          }
+        });
+      } else {
+        // Set default bookmarks and fetch favicons
+        localStorage.setItem(storageKey, JSON.stringify(defaultBookmarks));
+        setBookmarks(defaultBookmarks);
+        defaultBookmarks.forEach((bookmark) => {
           fetchFavicon(bookmark.url, bookmark.id);
-        }
-      });
+        });
+      }
     } else {
-      // Fetch favicons for default bookmarks
-      defaultBookmarks.forEach((bookmark) => {
-        fetchFavicon(bookmark.url, bookmark.id);
+      chrome.storage.local.get([storageKey], (result) => {
+        if (result[storageKey]) {
+          setBookmarks(result[storageKey]);
+          // Fetch favicons for loaded bookmarks
+          result[storageKey].forEach((bookmark: Bookmark) => {
+            if (!bookmark.favicon) {
+              fetchFavicon(bookmark.url, bookmark.id);
+            }
+          });
+        } else {
+          // Set default bookmarks and fetch favicons
+          chrome.storage.local.set({ [storageKey]: defaultBookmarks });
+          setBookmarks(defaultBookmarks);
+          defaultBookmarks.forEach((bookmark) => {
+            fetchFavicon(bookmark.url, bookmark.id);
+          });
+        }
       });
     }
   }, []);
 
-  // Save bookmarks to localStorage whenever bookmarks change
+  // Save bookmarks to Chrome storage whenever bookmarks change
   useEffect(() => {
-    localStorage.setItem("chrome-bookmarks", JSON.stringify(bookmarks));
+    if (process.env.NODE_ENV === "development") {
+      localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+    } else {
+      chrome.storage.local.set({ bookmarks }, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Error saving bookmarks:", chrome.runtime.lastError);
+        }
+      });
+    }
   }, [bookmarks]);
 
   const fetchFavicon = async (url: string, bookmarkId: string) => {
@@ -142,8 +173,39 @@ export default function NewTabPage() {
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, bookmark: Bookmark) => {
+    e.dataTransfer.setData("text/plain", bookmark.id);
+    e.currentTarget.classList.add("opacity-50");
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetBookmark: Bookmark) => {
+    e.preventDefault();
+    const sourceId = e.dataTransfer.getData("text/plain");
+
+    if (sourceId === targetBookmark.id) return;
+
+    setBookmarks((prev) => {
+      const sourceIndex = prev.findIndex((b) => b.id === sourceId);
+      const targetIndex = prev.findIndex((b) => b.id === targetBookmark.id);
+
+      const newBookmarks = [...prev];
+      const [removed] = newBookmarks.splice(sourceIndex, 1);
+      newBookmarks.splice(targetIndex, 0, removed);
+
+      return newBookmarks;
+    });
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove("opacity-50");
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 p-8">
+    <div className="min-h-screen bg-[#21222C] p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
@@ -190,7 +252,7 @@ export default function NewTabPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter bookmark title"
-                    className="bg-gray-700 border-gray-600 text-white"
+                    className="bg-[#21222C] border-[#343746] text-white"
                   />
                 </div>
                 <div>
@@ -202,7 +264,7 @@ export default function NewTabPage() {
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="Enter URL (e.g., google.com)"
-                    className="bg-gray-700 border-gray-600 text-white"
+                    className="bg-[#21222C] border-[#343746] text-white"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -231,7 +293,7 @@ export default function NewTabPage() {
           {bookmarks.map((bookmark) => (
             <div key={bookmark.id} className="group relative">
               <Card
-                className="bg-gray-800 border-gray-700 p-4 cursor-pointer hover:bg-gray-700 transition-colors aspect-square flex flex-col items-center justify-center"
+                className="bg-[#282a36] border-[#343746] p-4 cursor-pointer hover:bg-[#21222C] transition-colors aspect-square flex flex-col items-center justify-center"
                 onClick={(e) => openBookmark(bookmark.url, e)}
                 onMouseDown={(e) => {
                   if (e.button === 1) {
@@ -245,6 +307,11 @@ export default function NewTabPage() {
                     openBookmark(bookmark.url, e);
                   }
                 }}
+                draggable
+                onDragStart={(e) => handleDragStart(e, bookmark)}
+                onDragOver={(e) => handleDragOver(e)}
+                onDrop={(e) => handleDrop(e, bookmark)}
+                onDragEnd={(e) => handleDragEnd(e)}
               >
                 <div className="w-12 h-12 items-center justify-center">
                   {bookmark.favicon ? (
@@ -292,7 +359,7 @@ export default function NewTabPage() {
         <div className="mt-12 text-center text-gray-400 text-sm">
           <p>
             Click on any bookmark to open it • Hover over bookmarks to edit them
-            • Favicons are automatically fetched
+            • Favicons are automatically fetched • Drag and drop to reorder
           </p>
         </div>
       </div>
