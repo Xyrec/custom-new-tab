@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Edit2, LayoutIcon, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
 
 interface Bookmark {
   id: string;
@@ -205,87 +206,90 @@ export default function NewTabPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#21222C] p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-2">
             <LayoutIcon className="w-6 h-6 text-yellow-400" />
-            <h1 className="text-2xl font-bold text-white">New Tab</h1>
+            <h1 className="text-2xl font-bold text-foreground">New Tab</h1>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                onClick={() => {
-                  setEditingBookmark(null);
-                  setTitle("");
-                  setUrl("");
-                }}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Bookmark
-              </Button>
-            </DialogTrigger>
-            <DialogContent aria-describedby="dialog-description">
-              <DialogHeader>
-                <DialogTitle className="text-white">
-                  {editingBookmark ? "Edit Bookmark" : "Add New Bookmark"}
-                </DialogTitle>
-                <DialogDescription
-                  id="dialog-description"
-                  className="text-gray-400"
+          <div className="flex items-center gap-4">
+            <ModeToggle />
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => {
+                    setEditingBookmark(null);
+                    setTitle("");
+                    setUrl("");
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {editingBookmark
-                    ? "Update your bookmark details below."
-                    : "Add a new bookmark to your collection."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title" className="text-gray-300">
-                    Title
-                  </Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Enter bookmark title"
-                    className="bg-[#21222C] border-[#343746] text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="url" className="text-gray-300">
-                    URL
-                  </Label>
-                  <Input
-                    id="url"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="Enter URL (e.g., google.com)"
-                    className="bg-[#21222C] border-[#343746] text-white"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleSave}
-                    className="bg-blue-600 hover:bg-blue-700"
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Bookmark
+                </Button>
+              </DialogTrigger>
+              <DialogContent aria-describedby="dialog-description">
+                <DialogHeader>
+                  <DialogTitle className="text-foreground">
+                    {editingBookmark ? "Edit Bookmark" : "Add New Bookmark"}
+                  </DialogTitle>
+                  <DialogDescription
+                    id="dialog-description"
+                    className="text-muted-foreground"
                   >
-                    {editingBookmark ? "Update" : "Add"}
-                  </Button>
-                  {editingBookmark && (
+                    {editingBookmark
+                      ? "Update your bookmark details below."
+                      : "Add a new bookmark to your collection."}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="title" className="text-foreground">
+                      Title
+                    </Label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Enter bookmark title"
+                      className="bg-background border-border text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="url" className="text-foreground">
+                      URL
+                    </Label>
+                    <Input
+                      id="url"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      placeholder="Enter URL (e.g., google.com)"
+                      className="bg-background border-border text-foreground"
+                    />
+                  </div>
+                  <div className="flex gap-2">
                     <Button
-                      onClick={() => handleDelete(editingBookmark.id)}
-                      variant="destructive"
+                      onClick={handleSave}
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
-                      Delete
+                      {editingBookmark ? "Update" : "Add"}
                     </Button>
-                  )}
+                    {editingBookmark && (
+                      <Button
+                        onClick={() => handleDelete(editingBookmark.id)}
+                        variant="destructive"
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Bookmarks Grid */}
@@ -293,15 +297,9 @@ export default function NewTabPage() {
           {bookmarks.map((bookmark) => (
             <div key={bookmark.id} className="group relative">
               <Card
-                className="bg-[#282a36] border-[#343746] p-4 cursor-pointer hover:bg-[#21222C] transition-colors aspect-square flex flex-col items-center justify-center"
+                className="bg-card border-border p-4 cursor-pointer hover:bg-muted transition-colors aspect-square flex flex-col items-center justify-center"
                 onClick={(e) => openBookmark(bookmark.url, e)}
                 onMouseDown={(e) => {
-                  if (e.button === 1) {
-                    e.preventDefault();
-                    openBookmark(bookmark.url, e);
-                  }
-                }}
-                onAuxClick={(e) => {
                   if (e.button === 1) {
                     e.preventDefault();
                     openBookmark(bookmark.url, e);
@@ -327,14 +325,14 @@ export default function NewTabPage() {
                     />
                   ) : null}
                   <div
-                    className={`w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center text-white font-bold text-lg ${
+                    className={`w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-foreground font-bold text-lg ${
                       bookmark.favicon ? "hidden" : ""
                     }`}
                   >
                     {bookmark.title.charAt(0).toUpperCase()}
                   </div>
                 </div>
-                <span className="text-white text-sm text-center font-medium leading-tight">
+                <span className="text-foreground text-sm text-center font-medium leading-tight">
                   ★ {bookmark.title}
                 </span>
               </Card>
@@ -343,7 +341,7 @@ export default function NewTabPage() {
               <Button
                 size="sm"
                 variant="secondary"
-                className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-600 hover:bg-gray-500"
+                className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-muted/80"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEdit(bookmark);
@@ -356,7 +354,7 @@ export default function NewTabPage() {
         </div>
 
         {/* Instructions */}
-        <div className="mt-12 text-center text-gray-400 text-sm">
+        <div className="mt-12 text-center text-muted-foreground text-sm">
           <p>
             Click on any bookmark to open it • Hover over bookmarks to edit them
             • Favicons are automatically fetched • Drag and drop to reorder
