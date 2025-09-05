@@ -12,7 +12,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { resolveFavicon } from "@/lib/favicons";
 import { getColumnsCountFromElement } from "@/lib/grid";
 import { Edit2, LayoutIcon, Plus } from "lucide-react";
@@ -44,8 +55,6 @@ export default function NewTabPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(defaultBookmarks);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
   const gridRef = useRef<HTMLDivElement | null>(null);
 
   // Load bookmarks from Chrome storage on mount
@@ -68,8 +77,8 @@ export default function NewTabPage() {
               if (icon) {
                 setBookmarks((prev) =>
                   prev.map((b) =>
-                    b.id === bookmark.id ? { ...b, favicon: icon } : b
-                  )
+                    b.id === bookmark.id ? { ...b, favicon: icon } : b,
+                  ),
                 );
               }
             });
@@ -84,8 +93,8 @@ export default function NewTabPage() {
             if (icon)
               setBookmarks((prev) =>
                 prev.map((b) =>
-                  b.id === bookmark.id ? { ...b, favicon: icon } : b
-                )
+                  b.id === bookmark.id ? { ...b, favicon: icon } : b,
+                ),
               );
           });
         });
@@ -106,8 +115,8 @@ export default function NewTabPage() {
                 if (icon)
                   setBookmarks((prev) =>
                     prev.map((b) =>
-                      b.id === bookmark.id ? { ...b, favicon: icon } : b
-                    )
+                      b.id === bookmark.id ? { ...b, favicon: icon } : b,
+                    ),
                   );
               });
             }
@@ -121,8 +130,8 @@ export default function NewTabPage() {
               if (icon)
                 setBookmarks((prev) =>
                   prev.map((b) =>
-                    b.id === bookmark.id ? { ...b, favicon: icon } : b
-                  )
+                    b.id === bookmark.id ? { ...b, favicon: icon } : b,
+                  ),
                 );
             });
           });
@@ -146,39 +155,55 @@ export default function NewTabPage() {
 
   const getColumnsCount = () => getColumnsCountFromElement(gridRef.current, 8);
 
-  const handleSave = () => {
-    if (!title || !url) return;
+  const schema = z.object({
+    title: z.string().min(1, "Title is required"),
+    url: z.string().optional(),
+  });
+  type FormValues = z.infer<typeof schema>;
 
-    let formattedUrl = url;
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      formattedUrl = "https://" + url;
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { title: "", url: "" },
+  });
+
+  const handleSave = (data: FormValues) => {
+    const titleValue = data.title;
+    const urlValue = data.url || "";
+    if (!titleValue || !urlValue) return;
+
+    let formattedUrl = urlValue;
+    if (!urlValue.startsWith("http://") && !urlValue.startsWith("https://")) {
+      formattedUrl = "https://" + urlValue;
     }
 
     if (editingBookmark) {
-      // Update existing bookmark
       setBookmarks((prev) =>
         prev.map((bookmark) =>
           bookmark.id === editingBookmark.id
-            ? { ...bookmark, title, url: formattedUrl, favicon: undefined }
-            : bookmark
-        )
+            ? {
+                ...bookmark,
+                title: titleValue,
+                url: formattedUrl,
+                favicon: undefined,
+              }
+            : bookmark,
+        ),
       );
       resolveFavicon(formattedUrl).then((icon) => {
         if (icon)
           setBookmarks((prev) =>
             prev.map((b) =>
-              b.id === editingBookmark.id ? { ...b, favicon: icon } : b
-            )
+              b.id === editingBookmark.id ? { ...b, favicon: icon } : b,
+            ),
           );
       });
     } else {
-      // Add new bookmark
       setBookmarks((prev) => {
         const columns = getColumnsCount();
         const pos = prev.length;
         const newBookmark: Bookmark = {
           id: Date.now().toString(),
-          title,
+          title: titleValue,
           url: formattedUrl,
           position: pos,
           row: Math.floor(pos / columns) + 1,
@@ -188,24 +213,22 @@ export default function NewTabPage() {
           if (icon)
             setBookmarks((prev) =>
               prev.map((b) =>
-                b.id === newBookmark.id ? { ...b, favicon: icon } : b
-              )
+                b.id === newBookmark.id ? { ...b, favicon: icon } : b,
+              ),
             );
         });
         return [...prev, newBookmark];
       });
     }
 
-    setTitle("");
-    setUrl("");
+    form.reset();
     setEditingBookmark(null);
     setIsDialogOpen(false);
   };
 
   const handleEdit = (bookmark: Bookmark) => {
+    form.reset({ title: bookmark.title, url: bookmark.url });
     setEditingBookmark(bookmark);
-    setTitle(bookmark.title);
-    setUrl(bookmark.url);
     setIsDialogOpen(true);
   };
 
@@ -305,126 +328,149 @@ export default function NewTabPage() {
   };
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-2">
-            <LayoutIcon className="w-6 h-6 text-yellow-400" />
-            <h1 className="text-2xl font-semibold">New Tab</h1>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <ModeToggle />
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() => {
-                    setEditingBookmark(null);
-                    setTitle("");
-                    setUrl("");
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Bookmark
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingBookmark ? "Edit Bookmark" : "Add New Bookmark"}
-                  </DialogTitle>
-                  <DialogDescription id="dialog-description">
-                    {editingBookmark
-                      ? "Update your bookmark details below."
-                      : "Add a new bookmark to your collection."}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Enter bookmark title"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="url">URL</Label>
-                    <Input
-                      id="url"
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      placeholder="Enter URL (e.g., google.com)"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Button onClick={handleSave}>
-                      {editingBookmark ? "Update" : "Add"}
-                    </Button>
-                    {editingBookmark && (
-                      <Button
-                        onClick={() => handleDelete(editingBookmark.id)}
-                        variant="destructive"
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+    <div className="flex min-h-screen flex-col justify-between p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <LayoutIcon className="h-6 w-6 text-yellow-400" />
+          <h1 className="text-2xl font-semibold">New Tab</h1>
         </div>
 
+        <div className="flex items-center gap-4">
+          <ModeToggle />
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={() => {
+                  setEditingBookmark(null);
+                  form.reset();
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Bookmark
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editingBookmark ? "Edit Bookmark" : "Add New Bookmark"}
+                </DialogTitle>
+                <DialogDescription id="dialog-description">
+                  {editingBookmark
+                    ? "Update your bookmark details below."
+                    : "Add a new bookmark to your collection."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(handleSave)}
+                    className="space-y-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Title</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter bookmark title"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>URL</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter URL (e.g., example.com)"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex flex-col gap-2">
+                      <Button type="submit">
+                        {editingBookmark ? "Update" : "Add"}
+                      </Button>
+                      {editingBookmark && (
+                        <Button
+                          onClick={() => handleDelete(editingBookmark.id)}
+                          variant="destructive"
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                </Form>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center">
         {/* Bookmarks Grid */}
         <div
           ref={gridRef}
-          className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6"
+          className="mx-auto grid max-w-6xl grid-cols-2 gap-6 sm:grid-cols-4 lg:grid-cols-8"
         >
           {bookmarks
             .slice()
             .sort(
               (a, b) =>
                 (typeof a.position === "number" ? a.position : 0) -
-                (typeof b.position === "number" ? b.position : 0)
+                (typeof b.position === "number" ? b.position : 0),
             )
             .map((bookmark) => (
               <div key={bookmark.id} className="group relative">
                 <Link href={bookmark.url}>
                   <Card
-                    className="p-4 cursor-pointer aspect-square flex flex-col items-center justify-center"
+                    className="flex aspect-square cursor-pointer flex-col items-center justify-center p-4"
                     draggable
                     onDragStart={(e) => handleDragStart(e, bookmark)}
                     onDragOver={(e) => handleDragOver(e)}
                     onDrop={(e) => handleDrop(e, bookmark)}
                     onDragEnd={(e) => handleDragEnd(e)}
                   >
-                    <div className="w-12 h-12 items-center justify-center">
+                    <div className="h-12 w-12 items-center justify-center">
                       {bookmark.favicon ? (
                         <img
                           src={bookmark.favicon || "/placeholder.svg"}
                           alt={bookmark.title}
-                          className="w-12 h-12 rounded-lg"
+                          className="h-12 w-12 rounded-lg"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = "none";
                             target.nextElementSibling?.classList.remove(
-                              "hidden"
+                              "hidden",
                             );
                           }}
                         />
                       ) : null}
                       <div
-                        className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${
+                        className={`flex h-12 w-12 items-center justify-center rounded-lg text-lg font-bold ${
                           bookmark.favicon ? "hidden" : ""
                         }`}
                       >
                         {bookmark.title.charAt(0).toUpperCase()}
                       </div>
                     </div>
-                    <span className="text-sm text-center font-medium leading-tight">
+                    <span className="text-center text-sm leading-tight font-medium">
                       ★ {bookmark.title}
                     </span>
                   </Card>
@@ -434,25 +480,25 @@ export default function NewTabPage() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity border border-border cursor-pointer"
+                  className="border-border absolute -top-2 -right-2 h-6 w-6 cursor-pointer border p-0 opacity-0 transition-opacity group-hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleEdit(bookmark);
                   }}
                 >
-                  <Edit2 className="w-3 h-3" />
+                  <Edit2 className="h-3 w-3" />
                 </Button>
               </div>
             ))}
         </div>
+      </div>
 
-        {/* Instructions */}
-        <div className="mt-12 text-center text-sm">
-          <p>
-            Click on any bookmark to open it • Hover over bookmarks to edit them
-            • Favicons are automatically fetched • Drag and drop to reorder
-          </p>
-        </div>
+      {/* Instructions */}
+      <div className="text-foreground/20 pointer-events-none mt-24 text-center text-sm select-none">
+        <p>
+          Click on any bookmark to open it • Hover over bookmarks to edit them •
+          Favicons are automatically fetched • Drag and drop to reorder
+        </p>
       </div>
     </div>
   );

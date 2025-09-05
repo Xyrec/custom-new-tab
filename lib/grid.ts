@@ -1,6 +1,6 @@
 export function getColumnsCountFromElement(
   el: HTMLElement | null,
-  fallback = 8
+  fallback = 8,
 ): number {
   try {
     if (!el) return fallback;

@@ -22,5 +22,5 @@ chrome.webNavigation.onCompleted.addListener(
       });
     }
   },
-  { url: [{ schemes: ["chrome-extension"] }] }
+  { url: [{ schemes: ["chrome-extension"] }] },
 );

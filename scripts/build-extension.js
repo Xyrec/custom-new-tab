@@ -9,13 +9,13 @@ const __dirname = path.dirname(__filename);
 // Copy manifest.json to dist folder
 fs.copyFileSync(
   path.join(__dirname, "../public/manifest.json"),
-  path.join(__dirname, "../dist/manifest.json")
+  path.join(__dirname, "../dist/manifest.json"),
 );
 
 // Copy background script
 fs.copyFileSync(
   path.join(__dirname, "../public/background.js"),
-  path.join(__dirname, "../dist/background.js")
+  path.join(__dirname, "../dist/background.js"),
 );
 
 // Copy icons to dist folder
@@ -84,7 +84,7 @@ const updateFileReferences = (dir) => {
         content = content.replace(
           "<head>",
           `<head>
-            <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'wasm-unsafe-eval' ${cspHashes}; object-src 'self'">`
+            <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'wasm-unsafe-eval' ${cspHashes}; object-src 'self'">`,
         );
       }
 
