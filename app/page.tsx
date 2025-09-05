@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resolveFavicon } from "@/lib/favicons";
+import { getColumnsCountFromElement } from "@/lib/grid";
 import { Edit2, LayoutIcon, Plus } from "lucide-react";
 import Link from "next/link";
 import { DragEvent, useEffect, useRef, useState } from "react";
@@ -59,10 +61,18 @@ export default function NewTabPage() {
           position: typeof b.position === "number" ? b.position : i,
         }));
         setBookmarks(normalized);
-        // Fetch favicons for loaded bookmarks
+        // Resolve favicons for loaded bookmarks
         JSON.parse(storedBookmarks).forEach((bookmark: Bookmark) => {
           if (!bookmark.favicon) {
-            fetchFavicon(bookmark.url, bookmark.id);
+            resolveFavicon(bookmark.url).then((icon) => {
+              if (icon) {
+                setBookmarks((prev) =>
+                  prev.map((b) =>
+                    b.id === bookmark.id ? { ...b, favicon: icon } : b
+                  )
+                );
+              }
+            });
           }
         });
       } else {
@@ -70,7 +80,14 @@ export default function NewTabPage() {
         localStorage.setItem(storageKey, JSON.stringify(defaultBookmarks));
         setBookmarks(defaultBookmarks);
         defaultBookmarks.forEach((bookmark) => {
-          fetchFavicon(bookmark.url, bookmark.id);
+          resolveFavicon(bookmark.url).then((icon) => {
+            if (icon)
+              setBookmarks((prev) =>
+                prev.map((b) =>
+                  b.id === bookmark.id ? { ...b, favicon: icon } : b
+                )
+              );
+          });
         });
       }
     } else {
@@ -82,10 +99,17 @@ export default function NewTabPage() {
             position: typeof b.position === "number" ? b.position : i,
           }));
           setBookmarks(normalized);
-          // Fetch favicons for loaded bookmarks
+          // Resolve favicons for loaded bookmarks
           normalized.forEach((bookmark: Bookmark) => {
             if (!bookmark.favicon) {
-              fetchFavicon(bookmark.url, bookmark.id);
+              resolveFavicon(bookmark.url).then((icon) => {
+                if (icon)
+                  setBookmarks((prev) =>
+                    prev.map((b) =>
+                      b.id === bookmark.id ? { ...b, favicon: icon } : b
+                    )
+                  );
+              });
             }
           });
         } else {
@@ -93,7 +117,14 @@ export default function NewTabPage() {
           chrome.storage.local.set({ [storageKey]: defaultBookmarks });
           setBookmarks(defaultBookmarks);
           defaultBookmarks.forEach((bookmark) => {
-            fetchFavicon(bookmark.url, bookmark.id);
+            resolveFavicon(bookmark.url).then((icon) => {
+              if (icon)
+                setBookmarks((prev) =>
+                  prev.map((b) =>
+                    b.id === bookmark.id ? { ...b, favicon: icon } : b
+                  )
+                );
+            });
           });
         }
       });
@@ -113,36 +144,7 @@ export default function NewTabPage() {
     }
   }, [bookmarks]);
 
-  // Utility: get number of CSS grid columns currently applied to the grid container
-  const getColumnsCount = () => {
-    try {
-      if (!gridRef.current) return 8;
-      const computed = window.getComputedStyle(gridRef.current);
-      const template = computed.gridTemplateColumns;
-      if (!template) return 8;
-      return template.split(" ").filter(Boolean).length || 8;
-    } catch (e) {
-      console.error("Error getting columns count:", e);
-      return 8;
-    }
-  };
-
-  const fetchFavicon = async (url: string, bookmarkId: string) => {
-    try {
-      const domain = new URL(url).hostname;
-      const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-
-      setBookmarks((prev) =>
-        prev.map((bookmark) =>
-          bookmark.id === bookmarkId
-            ? { ...bookmark, favicon: faviconUrl }
-            : bookmark
-        )
-      );
-    } catch (error) {
-      console.error("Error fetching favicon:", error);
-    }
-  };
+  const getColumnsCount = () => getColumnsCountFromElement(gridRef.current, 8);
 
   const handleSave = () => {
     if (!title || !url) return;
@@ -161,7 +163,14 @@ export default function NewTabPage() {
             : bookmark
         )
       );
-      fetchFavicon(formattedUrl, editingBookmark.id);
+      resolveFavicon(formattedUrl).then((icon) => {
+        if (icon)
+          setBookmarks((prev) =>
+            prev.map((b) =>
+              b.id === editingBookmark.id ? { ...b, favicon: icon } : b
+            )
+          );
+      });
     } else {
       // Add new bookmark
       setBookmarks((prev) => {
@@ -175,7 +184,14 @@ export default function NewTabPage() {
           row: Math.floor(pos / columns) + 1,
           col: (pos % columns) + 1,
         };
-        fetchFavicon(formattedUrl, newBookmark.id);
+        resolveFavicon(formattedUrl).then((icon) => {
+          if (icon)
+            setBookmarks((prev) =>
+              prev.map((b) =>
+                b.id === newBookmark.id ? { ...b, favicon: icon } : b
+              )
+            );
+        });
         return [...prev, newBookmark];
       });
     }
@@ -289,7 +305,7 @@ export default function NewTabPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
@@ -378,7 +394,7 @@ export default function NewTabPage() {
               <div key={bookmark.id} className="group relative">
                 <Link href={bookmark.url}>
                   <Card
-                    className="bg-card border-border p-4 cursor-pointer hover:bg-muted transition-colors aspect-square flex flex-col items-center justify-center"
+                    className="p-4 cursor-pointer aspect-square flex flex-col items-center justify-center"
                     draggable
                     onDragStart={(e) => handleDragStart(e, bookmark)}
                     onDragOver={(e) => handleDragOver(e)}
@@ -401,14 +417,14 @@ export default function NewTabPage() {
                         />
                       ) : null}
                       <div
-                        className={`w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-foreground font-bold text-lg ${
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg ${
                           bookmark.favicon ? "hidden" : ""
                         }`}
                       >
                         {bookmark.title.charAt(0).toUpperCase()}
                       </div>
                     </div>
-                    <span className="text-foreground text-sm text-center font-medium leading-tight">
+                    <span className="text-sm text-center font-medium leading-tight">
                       ★ {bookmark.title}
                     </span>
                   </Card>
@@ -418,7 +434,7 @@ export default function NewTabPage() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-muted/80"
+                  className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity border border-border cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleEdit(bookmark);
@@ -431,7 +447,7 @@ export default function NewTabPage() {
         </div>
 
         {/* Instructions */}
-        <div className="mt-12 text-center text-muted-foreground text-sm">
+        <div className="mt-12 text-center text-sm">
           <p>
             Click on any bookmark to open it • Hover over bookmarks to edit them
             • Favicons are automatically fetched • Drag and drop to reorder
