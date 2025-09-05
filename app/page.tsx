@@ -1,22 +1,21 @@
 "use client";
 
-import type React from "react";
-
+import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Edit2, LayoutIcon, Plus } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { ModeToggle } from "@/components/mode-toggle";
+import Link from "next/link";
+import { DragEvent, useEffect, useRef, useState } from "react";
 
 interface Bookmark {
   id: string;
@@ -205,28 +204,23 @@ export default function NewTabPage() {
         col: (i % columns) + 1,
       }));
     });
+    // Close dialog and clear editing state when deleting from the dialog
+    setIsDialogOpen(false);
+    setEditingBookmark(null);
   };
 
-  const openBookmark = (url: string, event?: React.MouseEvent) => {
-    if (event?.button === 1 || event?.ctrlKey || event?.metaKey) {
-      // Middle click, Ctrl+click, or Cmd+click - open in new tab
-      window.open(url, "_blank");
-    } else {
-      // Regular click - open in same tab
-      window.open(url, "_self");
-    }
-  };
+  // Navigation is handled by Next.js Link around each Card
 
-  const handleDragStart = (e: React.DragEvent, bookmark: Bookmark) => {
+  const handleDragStart = (e: DragEvent, bookmark: Bookmark) => {
     e.dataTransfer.setData("text/plain", bookmark.id);
     e.currentTarget.classList.add("opacity-50");
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, targetBookmark: Bookmark) => {
+  const handleDrop = (e: DragEvent, targetBookmark: Bookmark) => {
     e.preventDefault();
     const sourceId = e.dataTransfer.getData("text/plain");
     if (sourceId === targetBookmark.id) return;
@@ -290,7 +284,7 @@ export default function NewTabPage() {
     });
   };
 
-  const handleDragEnd = (e: React.DragEvent) => {
+  const handleDragEnd = (e: DragEvent) => {
     e.currentTarget.classList.remove("opacity-50");
   };
 
@@ -301,7 +295,7 @@ export default function NewTabPage() {
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-2">
             <LayoutIcon className="w-6 h-6 text-yellow-400" />
-            <h1 className="text-2xl font-bold text-foreground">New Tab</h1>
+            <h1 className="text-2xl font-semibold">New Tab</h1>
           </div>
 
           <div className="flex items-center gap-4">
@@ -314,56 +308,43 @@ export default function NewTabPage() {
                     setTitle("");
                     setUrl("");
                   }}
-                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Bookmark
                 </Button>
               </DialogTrigger>
-              <DialogContent aria-describedby="dialog-description">
+              <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className="text-foreground">
+                  <DialogTitle>
                     {editingBookmark ? "Edit Bookmark" : "Add New Bookmark"}
                   </DialogTitle>
-                  <DialogDescription
-                    id="dialog-description"
-                    className="text-muted-foreground"
-                  >
+                  <DialogDescription id="dialog-description">
                     {editingBookmark
                       ? "Update your bookmark details below."
                       : "Add a new bookmark to your collection."}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="title" className="text-foreground">
-                      Title
-                    </Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="title">Title</Label>
                     <Input
                       id="title"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="Enter bookmark title"
-                      className="bg-background border-border text-foreground"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="url" className="text-foreground">
-                      URL
-                    </Label>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="url">URL</Label>
                     <Input
                       id="url"
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
                       placeholder="Enter URL (e.g., google.com)"
-                      className="bg-background border-border text-foreground"
                     />
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleSave}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
+                  <div className="flex flex-col gap-2">
+                    <Button onClick={handleSave}>
                       {editingBookmark ? "Update" : "Add"}
                     </Button>
                     {editingBookmark && (
@@ -395,46 +376,43 @@ export default function NewTabPage() {
             )
             .map((bookmark) => (
               <div key={bookmark.id} className="group relative">
-                <Card
-                  className="bg-card border-border p-4 cursor-pointer hover:bg-muted transition-colors aspect-square flex flex-col items-center justify-center"
-                  onClick={(e) => openBookmark(bookmark.url, e)}
-                  onMouseDown={(e) => {
-                    if (e.button === 1) {
-                      e.preventDefault();
-                      openBookmark(bookmark.url, e);
-                    }
-                  }}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, bookmark)}
-                  onDragOver={(e) => handleDragOver(e)}
-                  onDrop={(e) => handleDrop(e, bookmark)}
-                  onDragEnd={(e) => handleDragEnd(e)}
-                >
-                  <div className="w-12 h-12 items-center justify-center">
-                    {bookmark.favicon ? (
-                      <img
-                        src={bookmark.favicon || "/placeholder.svg"}
-                        alt={bookmark.title}
-                        className="w-12 h-12 rounded-lg"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = "none";
-                          target.nextElementSibling?.classList.remove("hidden");
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      className={`w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-foreground font-bold text-lg ${
-                        bookmark.favicon ? "hidden" : ""
-                      }`}
-                    >
-                      {bookmark.title.charAt(0).toUpperCase()}
+                <Link href={bookmark.url}>
+                  <Card
+                    className="bg-card border-border p-4 cursor-pointer hover:bg-muted transition-colors aspect-square flex flex-col items-center justify-center"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, bookmark)}
+                    onDragOver={(e) => handleDragOver(e)}
+                    onDrop={(e) => handleDrop(e, bookmark)}
+                    onDragEnd={(e) => handleDragEnd(e)}
+                  >
+                    <div className="w-12 h-12 items-center justify-center">
+                      {bookmark.favicon ? (
+                        <img
+                          src={bookmark.favicon || "/placeholder.svg"}
+                          alt={bookmark.title}
+                          className="w-12 h-12 rounded-lg"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                            target.nextElementSibling?.classList.remove(
+                              "hidden"
+                            );
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-foreground font-bold text-lg ${
+                          bookmark.favicon ? "hidden" : ""
+                        }`}
+                      >
+                        {bookmark.title.charAt(0).toUpperCase()}
+                      </div>
                     </div>
-                  </div>
-                  <span className="text-foreground text-sm text-center font-medium leading-tight">
-                    ★ {bookmark.title}
-                  </span>
-                </Card>
+                    <span className="text-foreground text-sm text-center font-medium leading-tight">
+                      ★ {bookmark.title}
+                    </span>
+                  </Card>
+                </Link>
 
                 {/* Edit button - appears on hover */}
                 <Button
