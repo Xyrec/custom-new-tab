@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Edit2, LayoutIcon, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 
 interface Bookmark {
@@ -23,17 +23,20 @@ interface Bookmark {
   title: string;
   url: string;
   favicon?: string;
+  position?: number;
+  row?: number;
+  col?: number;
 }
 
 const defaultBookmarks: Bookmark[] = [
-  { id: "1", title: "YouTube", url: "https://youtube.com" },
-  { id: "2", title: "Reddit", url: "https://reddit.com" },
-  { id: "3", title: "GitHub", url: "https://github.com" },
-  { id: "4", title: "Twitter", url: "https://twitter.com" },
-  { id: "5", title: "Gmail", url: "https://gmail.com" },
-  { id: "6", title: "Netflix", url: "https://netflix.com" },
-  { id: "7", title: "Amazon", url: "https://amazon.com" },
-  { id: "8", title: "Facebook", url: "https://facebook.com" },
+  { id: "1", title: "YouTube", url: "https://youtube.com", position: 0 },
+  { id: "2", title: "Reddit", url: "https://reddit.com", position: 1 },
+  { id: "3", title: "GitHub", url: "https://github.com", position: 2 },
+  { id: "4", title: "Twitter", url: "https://twitter.com", position: 3 },
+  { id: "5", title: "Gmail", url: "https://gmail.com", position: 4 },
+  { id: "6", title: "Netflix", url: "https://netflix.com", position: 5 },
+  { id: "7", title: "Amazon", url: "https://amazon.com", position: 6 },
+  { id: "8", title: "Facebook", url: "https://facebook.com", position: 7 },
 ];
 
 export default function NewTabPage() {
@@ -42,6 +45,7 @@ export default function NewTabPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const gridRef = useRef<HTMLDivElement | null>(null);
 
   // Load bookmarks from Chrome storage on mount
   useEffect(() => {
@@ -49,7 +53,13 @@ export default function NewTabPage() {
     if (process.env.NODE_ENV === "development") {
       const storedBookmarks = localStorage.getItem(storageKey);
       if (storedBookmarks) {
-        setBookmarks(JSON.parse(storedBookmarks));
+        const parsed: Bookmark[] = JSON.parse(storedBookmarks);
+        // Ensure positions exist; if not, assign by index
+        const normalized = parsed.map((b, i) => ({
+          ...b,
+          position: typeof b.position === "number" ? b.position : i,
+        }));
+        setBookmarks(normalized);
         // Fetch favicons for loaded bookmarks
         JSON.parse(storedBookmarks).forEach((bookmark: Bookmark) => {
           if (!bookmark.favicon) {
@@ -67,9 +77,14 @@ export default function NewTabPage() {
     } else {
       chrome.storage.local.get([storageKey], (result) => {
         if (result[storageKey]) {
-          setBookmarks(result[storageKey]);
+          const parsed: Bookmark[] = result[storageKey];
+          const normalized = parsed.map((b: Bookmark, i: number) => ({
+            ...b,
+            position: typeof b.position === "number" ? b.position : i,
+          }));
+          setBookmarks(normalized);
           // Fetch favicons for loaded bookmarks
-          result[storageKey].forEach((bookmark: Bookmark) => {
+          normalized.forEach((bookmark: Bookmark) => {
             if (!bookmark.favicon) {
               fetchFavicon(bookmark.url, bookmark.id);
             }
@@ -98,6 +113,20 @@ export default function NewTabPage() {
       });
     }
   }, [bookmarks]);
+
+  // Utility: get number of CSS grid columns currently applied to the grid container
+  const getColumnsCount = () => {
+    try {
+      if (!gridRef.current) return 8;
+      const computed = window.getComputedStyle(gridRef.current);
+      const template = computed.gridTemplateColumns;
+      if (!template) return 8;
+      return template.split(" ").filter(Boolean).length || 8;
+    } catch (e) {
+      console.error("Error getting columns count:", e);
+      return 8;
+    }
+  };
 
   const fetchFavicon = async (url: string, bookmarkId: string) => {
     try {
@@ -136,13 +165,20 @@ export default function NewTabPage() {
       fetchFavicon(formattedUrl, editingBookmark.id);
     } else {
       // Add new bookmark
-      const newBookmark: Bookmark = {
-        id: Date.now().toString(),
-        title,
-        url: formattedUrl,
-      };
-      setBookmarks((prev) => [...prev, newBookmark]);
-      fetchFavicon(formattedUrl, newBookmark.id);
+      setBookmarks((prev) => {
+        const columns = getColumnsCount();
+        const pos = prev.length;
+        const newBookmark: Bookmark = {
+          id: Date.now().toString(),
+          title,
+          url: formattedUrl,
+          position: pos,
+          row: Math.floor(pos / columns) + 1,
+          col: (pos % columns) + 1,
+        };
+        fetchFavicon(formattedUrl, newBookmark.id);
+        return [...prev, newBookmark];
+      });
     }
 
     setTitle("");
@@ -159,9 +195,16 @@ export default function NewTabPage() {
   };
 
   const handleDelete = (bookmarkId: string) => {
-    setBookmarks((prev) =>
-      prev.filter((bookmark) => bookmark.id !== bookmarkId)
-    );
+    setBookmarks((prev) => {
+      const columns = getColumnsCount();
+      const filtered = prev.filter((bookmark) => bookmark.id !== bookmarkId);
+      return filtered.map((b, i) => ({
+        ...b,
+        position: i,
+        row: Math.floor(i / columns) + 1,
+        col: (i % columns) + 1,
+      }));
+    });
   };
 
   const openBookmark = (url: string, event?: React.MouseEvent) => {
@@ -186,18 +229,64 @@ export default function NewTabPage() {
   const handleDrop = (e: React.DragEvent, targetBookmark: Bookmark) => {
     e.preventDefault();
     const sourceId = e.dataTransfer.getData("text/plain");
-
     if (sourceId === targetBookmark.id) return;
 
     setBookmarks((prev) => {
-      const sourceIndex = prev.findIndex((b) => b.id === sourceId);
-      const targetIndex = prev.findIndex((b) => b.id === targetBookmark.id);
+      const columns = getColumnsCount();
+      // build a map of position -> bookmark id
+      const byPosition = new Map<number, Bookmark>();
+      prev.forEach((b, i) => {
+        const pos = typeof b.position === "number" ? b.position : i;
+        byPosition.set(pos, b);
+      });
 
-      const newBookmarks = [...prev];
-      const [removed] = newBookmarks.splice(sourceIndex, 1);
-      newBookmarks.splice(targetIndex, 0, removed);
+      const source = prev.find((b) => b.id === sourceId);
+      const target = prev.find((b) => b.id === targetBookmark.id);
+      if (!source || !target) return prev;
 
-      return newBookmarks;
+      const sourcePos =
+        typeof source.position === "number"
+          ? source.position
+          : prev.indexOf(source);
+      const targetPos =
+        typeof target.position === "number"
+          ? target.position
+          : prev.indexOf(target);
+
+      // Swap positions to ensure uniqueness
+      const newByPosition = new Map(byPosition);
+      newByPosition.set(sourcePos, target);
+      newByPosition.set(targetPos, source);
+
+      // Convert map back to array and reassign positions (compact them in order of position keys)
+      const maxPos = Math.max(...Array.from(newByPosition.keys()));
+      const rebuilt: Bookmark[] = [];
+      for (let pos = 0; pos <= maxPos; pos++) {
+        const b = newByPosition.get(pos);
+        if (b) {
+          rebuilt.push({
+            ...b,
+            position: pos,
+            row: Math.floor(pos / columns) + 1,
+            col: (pos % columns) + 1,
+          });
+        }
+      }
+
+      // There might be bookmarks without positions (e.g., new ones); append them to the end
+      prev.forEach((b) => {
+        if (!Array.from(newByPosition.values()).find((v) => v.id === b.id)) {
+          const pos = rebuilt.length;
+          rebuilt.push({
+            ...b,
+            position: pos,
+            row: Math.floor(pos / columns) + 1,
+            col: (pos % columns) + 1,
+          });
+        }
+      });
+
+      return rebuilt;
     });
   };
 
@@ -293,64 +382,74 @@ export default function NewTabPage() {
         </div>
 
         {/* Bookmarks Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6">
-          {bookmarks.map((bookmark) => (
-            <div key={bookmark.id} className="group relative">
-              <Card
-                className="bg-card border-border p-4 cursor-pointer hover:bg-muted transition-colors aspect-square flex flex-col items-center justify-center"
-                onClick={(e) => openBookmark(bookmark.url, e)}
-                onMouseDown={(e) => {
-                  if (e.button === 1) {
-                    e.preventDefault();
-                    openBookmark(bookmark.url, e);
-                  }
-                }}
-                draggable
-                onDragStart={(e) => handleDragStart(e, bookmark)}
-                onDragOver={(e) => handleDragOver(e)}
-                onDrop={(e) => handleDrop(e, bookmark)}
-                onDragEnd={(e) => handleDragEnd(e)}
-              >
-                <div className="w-12 h-12 items-center justify-center">
-                  {bookmark.favicon ? (
-                    <img
-                      src={bookmark.favicon || "/placeholder.svg"}
-                      alt={bookmark.title}
-                      className="w-12 h-12 rounded-lg"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                        target.nextElementSibling?.classList.remove("hidden");
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className={`w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-foreground font-bold text-lg ${
-                      bookmark.favicon ? "hidden" : ""
-                    }`}
-                  >
-                    {bookmark.title.charAt(0).toUpperCase()}
+        <div
+          ref={gridRef}
+          className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6"
+        >
+          {bookmarks
+            .slice()
+            .sort(
+              (a, b) =>
+                (typeof a.position === "number" ? a.position : 0) -
+                (typeof b.position === "number" ? b.position : 0)
+            )
+            .map((bookmark) => (
+              <div key={bookmark.id} className="group relative">
+                <Card
+                  className="bg-card border-border p-4 cursor-pointer hover:bg-muted transition-colors aspect-square flex flex-col items-center justify-center"
+                  onClick={(e) => openBookmark(bookmark.url, e)}
+                  onMouseDown={(e) => {
+                    if (e.button === 1) {
+                      e.preventDefault();
+                      openBookmark(bookmark.url, e);
+                    }
+                  }}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, bookmark)}
+                  onDragOver={(e) => handleDragOver(e)}
+                  onDrop={(e) => handleDrop(e, bookmark)}
+                  onDragEnd={(e) => handleDragEnd(e)}
+                >
+                  <div className="w-12 h-12 items-center justify-center">
+                    {bookmark.favicon ? (
+                      <img
+                        src={bookmark.favicon || "/placeholder.svg"}
+                        alt={bookmark.title}
+                        className="w-12 h-12 rounded-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                          target.nextElementSibling?.classList.remove("hidden");
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className={`w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-foreground font-bold text-lg ${
+                        bookmark.favicon ? "hidden" : ""
+                      }`}
+                    >
+                      {bookmark.title.charAt(0).toUpperCase()}
+                    </div>
                   </div>
-                </div>
-                <span className="text-foreground text-sm text-center font-medium leading-tight">
-                  ★ {bookmark.title}
-                </span>
-              </Card>
+                  <span className="text-foreground text-sm text-center font-medium leading-tight">
+                    ★ {bookmark.title}
+                  </span>
+                </Card>
 
-              {/* Edit button - appears on hover */}
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-muted/80"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEdit(bookmark);
-                }}
-              >
-                <Edit2 className="w-3 h-3" />
-              </Button>
-            </div>
-          ))}
+                {/* Edit button - appears on hover */}
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-muted/80"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEdit(bookmark);
+                  }}
+                >
+                  <Edit2 className="w-3 h-3" />
+                </Button>
+              </div>
+            ))}
         </div>
 
         {/* Instructions */}
