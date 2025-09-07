@@ -11,24 +11,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Form,
+  FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
-  FormDescription,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { importBookmarksFromFile } from "@/lib/bookmark-import";
 import { resolveFavicon } from "@/lib/favicons";
 import { getColumnsCountFromElement } from "@/lib/grid";
-import { Edit2, LayoutIcon, Plus } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Edit2, LayoutIcon, Plus, Upload } from "lucide-react";
 import Link from "next/link";
 import { DragEvent, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface Bookmark {
   id: string;
@@ -327,6 +328,52 @@ export default function NewTabPage() {
     e.currentTarget.classList.remove("opacity-50");
   };
 
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    importBookmarksFromFile(
+      file,
+      (parsedBookmarks) => {
+        // Create new bookmarks from parsed data
+        const newBookmarks: Bookmark[] = parsedBookmarks.map(
+          (bookmarkData, index) => ({
+            id: Date.now().toString() + "_" + index,
+            title: bookmarkData.title,
+            url: bookmarkData.url,
+            position: index,
+            row: Math.floor(index / getColumnsCount()) + 1,
+            col: (index % getColumnsCount()) + 1,
+          }),
+        );
+
+        // Replace all bookmarks
+        setBookmarks(newBookmarks);
+
+        // Fetch favicons for new bookmarks
+        newBookmarks.forEach((bookmark) => {
+          resolveFavicon(bookmark.url).then((icon) => {
+            if (icon) {
+              setBookmarks((prev) =>
+                prev.map((b) =>
+                  b.id === bookmark.id ? { ...b, favicon: icon } : b,
+                ),
+              );
+            }
+          });
+        });
+
+        alert(`Successfully imported ${parsedBookmarks.length} bookmarks!`);
+      },
+      (error) => {
+        alert(error);
+      },
+    );
+
+    // Clear the input
+    event.target.value = "";
+  };
+
   return (
     <div className="flex min-h-screen flex-col justify-between p-8">
       {/* Header */}
@@ -338,6 +385,20 @@ export default function NewTabPage() {
 
         <div className="flex items-center gap-4">
           <ModeToggle />
+          <Button
+            variant="outline"
+            onClick={() => document.getElementById("file-input")?.click()}
+          >
+            <Upload className="h-4 w-4" />
+            Import
+          </Button>
+          <input
+            id="file-input"
+            type="file"
+            accept=".htm,.html"
+            style={{ display: "none" }}
+            onChange={handleFileImport}
+          />
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
@@ -346,7 +407,7 @@ export default function NewTabPage() {
                   form.reset();
                 }}
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="h-4 w-4" />
                 Add Bookmark
               </Button>
             </DialogTrigger>
@@ -361,11 +422,11 @@ export default function NewTabPage() {
                     : "Add a new bookmark to your collection."}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="flex flex-col gap-4">
                 <Form {...form}>
                   <form
                     onSubmit={form.handleSubmit(handleSave)}
-                    className="space-y-4"
+                    className="flex flex-col gap-4"
                   >
                     <FormField
                       control={form.control}
@@ -470,8 +531,8 @@ export default function NewTabPage() {
                         {bookmark.title.charAt(0).toUpperCase()}
                       </div>
                     </div>
-                    <span className="text-center text-sm leading-tight font-medium">
-                      ★ {bookmark.title}
+                    <span className="max-w-full truncate text-center text-sm leading-tight font-medium">
+                      {bookmark.title}
                     </span>
                   </Card>
                 </Link>
