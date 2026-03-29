@@ -239,6 +239,39 @@ export function useTopSites() {
     [state.sites, refresh],
   );
 
+  const importFromFirefox = useCallback(
+    async (file: File) => {
+      const text = await file.text();
+      const match = text.match(
+        /user_pref\("browser\.newtabpage\.pinned",\s*"(.+?)"\);/,
+      );
+      if (!match) throw new Error("No pinned sites found in prefs.js");
+
+      const jsonStr = match[1].replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+      const entries: { url: string; label?: string; baseDomain?: string }[] =
+        JSON.parse(jsonStr);
+
+      const stored = await loadStorage();
+      stored.pinned = {};
+      stored.custom = [];
+      stored.removed = [];
+
+      for (let i = 0; i < entries.length && i < COLS * MAX_ROWS; i++) {
+        const entry = entries[i];
+        if (!entry?.url) continue;
+        stored.pinned[String(i)] = {
+          title: entry.label || entry.baseDomain || "",
+          url: entry.url,
+        };
+      }
+
+      await saveStorage(stored);
+      refresh();
+      return entries.length;
+    },
+    [refresh],
+  );
+
   return {
     sites: state.sites,
     loading: state.loading,
@@ -248,6 +281,7 @@ export function useTopSites() {
     editSite,
     addSite,
     moveSite,
+    importFromFirefox,
   };
 }
 
