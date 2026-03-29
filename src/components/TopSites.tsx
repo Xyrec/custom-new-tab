@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { TopSite } from "../hooks/useTopSites";
 import { SiteEditModal } from "./SiteEditModal";
 import { getFaviconAttempts } from "../lib/favicon";
+import { getColumnsCountFromElement } from "../lib/grid";
 import { Pin, Plus, Ellipsis, Pencil, Trash2, Globe } from "lucide-react";
 
 interface TopSitesProps {
@@ -32,20 +33,13 @@ export function TopSites({
     url?: string;
   } | null>(null);
 
-  // How many columns are visible (responsive)
-  const getCols = () => {
-    const w = window.innerWidth;
-    if (w <= 510) return 3;
-    if (w <= 610) return 4;
-    if (w <= 1122) return 6;
-    return 8;
-  };
-
-  const [cols, setCols] = useState(getCols);
+  const gridRef = useRef<HTMLUListElement>(null);
+  const [cols, setCols] = useState(8);
   useEffect(() => {
-    const onResize = () => setCols(getCols());
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const update = () => setCols(getColumnsCountFromElement(gridRef.current));
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
   }, []);
 
   const visibleCount = MAX_ROWS * cols;
@@ -54,7 +48,7 @@ export function TopSites({
 
   return (
     <section className="top-sites" data-section-id="topsites">
-      <ul className="top-sites-list">
+      <ul ref={gridRef} className="top-sites-list">
         {visibleSites.map((site, i) => (
           <TopSiteTile
             key={`${site.url}-${i}`}

@@ -1,14 +1,18 @@
 /**
- * Favicon URLs for top-site tiles: Chrome's cached favicon API first, then Google's
- * domain service. Tiles advance to the next source on load error or a 16×16 placeholder.
+ * Favicon URL resolution with multiple fallback sources.
+ * Returns an ordered list of URLs to try — the img tag cycles through
+ * them on error or when the returned image is a tiny placeholder.
+ *
+ * Sources (in order):
+ * 1. Chrome's internal favicon cache (extension only, instant)
+ * 2. DuckDuckGo icon service (good coverage, no API key)
+ * 3. Google S2 favicon service (broadest coverage, final fallback)
  */
 
-export function getChromeInternalFaviconUrl(pageUrl: string): string | null {
+function getChromeInternalUrl(pageUrl: string): string | null {
   try {
     new URL(pageUrl);
-    if (typeof chrome === "undefined" || !chrome.runtime?.getURL) {
-      return null;
-    }
+    if (typeof chrome === "undefined" || !chrome.runtime?.getURL) return null;
     const url = new URL(chrome.runtime.getURL("/_favicon/"));
     url.searchParams.set("pageUrl", pageUrl);
     url.searchParams.set("size", "32");
@@ -18,22 +22,27 @@ export function getChromeInternalFaviconUrl(pageUrl: string): string | null {
   }
 }
 
-export function getGoogleFaviconUrl(url: string): string | null {
+function getDuckDuckGoUrl(pageUrl: string): string | null {
   try {
-    const u = new URL(url);
-    const domain = encodeURIComponent(u.hostname);
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    const domain = new URL(pageUrl).hostname;
+    return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
   } catch {
     return null;
   }
 }
 
-/** Ordered favicon sources: extension API when available, then Google. */
+function getGoogleUrl(pageUrl: string): string | null {
+  try {
+    const domain = new URL(pageUrl).hostname;
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+  } catch {
+    return null;
+  }
+}
+
+/** Ordered favicon source URLs to try for a given page URL. */
 export function getFaviconAttempts(pageUrl: string): string[] {
-  const chromeUrl = getChromeInternalFaviconUrl(pageUrl);
-  const googleUrl = getGoogleFaviconUrl(pageUrl);
-  const out: string[] = [];
-  if (chromeUrl) out.push(chromeUrl);
-  if (googleUrl) out.push(googleUrl);
-  return out;
+  return [getChromeInternalUrl(pageUrl), getDuckDuckGoUrl(pageUrl), getGoogleUrl(pageUrl)].filter(
+    (u): u is string => u !== null,
+  );
 }
