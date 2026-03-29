@@ -55,8 +55,8 @@ export function TopSites({
   const showAddButton = visibleSites.length < visibleCount;
 
   return (
-    <section className="relative">
-      <ul ref={gridRef} className="top-sites-list">
+    <section>
+      <ul ref={gridRef}>
         {visibleSites.map((site, i) => (
           <TopSiteTile
             key={`${site.url}-${i}`}
@@ -78,20 +78,15 @@ export function TopSites({
           />
         ))}
         {showAddButton && (
-          <li className="px-1 relative">
-            <div className="relative">
-              <button
-                className="flex flex-col items-center no-underline cursor-pointer py-2 rounded-2xl border-none bg-transparent w-full transition-colors hover:bg-accent"
-                onClick={() => setEditModal({ mode: "add" })}
-              >
-                <div className="size-16 rounded-2xl flex items-center justify-center mb-1 shrink-0">
-                  <div className="size-full rounded-2xl flex items-center justify-center border-2 border-dashed border-border bg-transparent">
-                    <Plus size={20} className="text-muted-foreground" />
+          <li>
+            <div>
+              <button onClick={() => setEditModal({ mode: "add" })}>
+                <div>
+                  <div>
+                    <Plus size={20} />
                   </div>
                 </div>
-                <span className="text-xs text-center max-w-20 truncate leading-tight">
-                  Add shortcut
-                </span>
+                <span>Add shortcut</span>
               </button>
             </div>
           </li>
@@ -156,7 +151,9 @@ function TopSiteTile({
 
   const faviconUrl = faviconAttempts[faviconAttemptIndex];
   const showFallback =
-    faviconAttempts.length === 0 || faviconAttemptIndex >= faviconAttempts.length || !faviconUrl;
+    faviconAttempts.length === 0 ||
+    faviconAttemptIndex >= faviconAttempts.length ||
+    !faviconUrl;
 
   const advanceFavicon = useCallback(() => {
     setFaviconAttemptIndex((i) => i + 1);
@@ -185,39 +182,32 @@ function TopSiteTile({
 
   return (
     <li
-      className={`px-1 relative ${dragOver ? "outline-2 outline-primary outline-offset-2 rounded-2xl" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="relative group">
+      <div>
         <a
-          className="flex flex-col items-center no-underline text-foreground cursor-pointer py-2 rounded-2xl border-none bg-transparent w-full transition-colors hover:bg-accent"
           href={site.url}
           draggable
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", String(index));
             onDragStart(index);
-            requestAnimationFrame(() => {
-              (e.target as HTMLElement).closest("li")?.classList.add("opacity-40");
-            });
           }}
-          onDragEnd={(e) => {
-            (e.target as HTMLElement).closest("li")?.classList.remove("opacity-40");
+          onDragEnd={() => {
             dragSourceIndex = null;
           }}
         >
-          <div className="size-16 rounded-2xl flex items-center justify-center mb-1 relative overflow-hidden shrink-0">
+          <div>
             {showFallback ? (
-              <div className="size-full rounded-2xl flex items-center justify-center bg-card shadow-[inset_0_0_0_1px_var(--border)] overflow-hidden">
-                <Globe size={24} className="text-muted-foreground" />
+              <div>
+                <Globe size={24} />
               </div>
             ) : (
-              <div className="size-full rounded-2xl flex items-center justify-center bg-card shadow-[inset_0_0_0_1px_var(--border)] overflow-hidden">
+              <div>
                 <img
                   key={`${faviconAttemptIndex}-${faviconUrl}`}
-                  className="size-8 rounded-sm"
                   src={faviconUrl}
                   alt=""
                   loading="lazy"
@@ -232,17 +222,17 @@ function TopSiteTile({
               </div>
             )}
           </div>
-          <div
-            className={`text-xs text-center max-w-20 truncate leading-tight ${site.pinned ? "flex items-center gap-0.5" : ""}`}
-          >
-            {site.pinned && <Pin size={12} className="size-3 shrink-0" />}
+          <div>
+            {site.pinned && <Pin size={12} />}
             <span>{site.customTitle || site.title || getDomain(site.url)}</span>
           </div>
         </a>
 
-        <div className="absolute top-0.5 right-0.5 z-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        <div>
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-xs" />}>
+            <DropdownMenuTrigger
+              render={<Button variant="ghost" size="icon-xs" />}
+            >
               <Ellipsis size={16} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" sideOffset={4}>

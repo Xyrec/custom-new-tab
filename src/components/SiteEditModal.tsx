@@ -42,8 +42,8 @@ export function SiteEditModal({
           <DialogTitle>{mode === "edit" ? "Edit shortcut" : "Add shortcut"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <form onSubmit={handleSubmit}>
+          <div>
             <Label htmlFor="site-title">Title</Label>
             <Input
               id="site-title"
@@ -55,7 +55,7 @@ export function SiteEditModal({
             />
           </div>
 
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="site-url">URL</Label>
             <Input
               id="site-url"
