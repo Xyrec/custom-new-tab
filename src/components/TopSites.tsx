@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { TopSite } from "../hooks/useTopSites";
 import { SiteEditModal } from "./SiteEditModal";
-import { getFaviconUrl } from "../lib/favicon";
+import { getFaviconAttempts } from "../lib/favicon";
 import { Pin, Plus, Ellipsis, Pencil, Trash2, Globe } from "lucide-react";
 
 interface TopSitesProps {
@@ -145,8 +145,10 @@ function TopSiteTile({
 }: TopSiteTileProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [faviconError, setFaviconError] = useState(false);
+  const [faviconAttemptIndex, setFaviconAttemptIndex] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const faviconAttempts = getFaviconAttempts(site.url);
 
   // Close menu on outside click
   useEffect(() => {
@@ -170,8 +172,17 @@ function TopSiteTile({
     return () => document.removeEventListener("keydown", handler);
   }, [menuOpen]);
 
-  const faviconUrl = getFaviconUrl(site.url);
-  const showFallback = !faviconUrl || faviconError;
+  useEffect(() => {
+    setFaviconAttemptIndex(0);
+  }, [site.url]);
+
+  const faviconUrl = faviconAttempts[faviconAttemptIndex];
+  const showFallback =
+    faviconAttempts.length === 0 || faviconAttemptIndex >= faviconAttempts.length || !faviconUrl;
+
+  const advanceFavicon = useCallback(() => {
+    setFaviconAttemptIndex((i) => i + 1);
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -228,15 +239,16 @@ function TopSiteTile({
             ) : (
               <div className="icon-wrapper">
                 <img
+                  key={`${faviconAttemptIndex}-${faviconUrl}`}
                   className="top-site-icon favicon-image"
                   src={faviconUrl}
                   alt=""
                   loading="lazy"
-                  onError={() => setFaviconError(true)}
+                  onError={advanceFavicon}
                   onLoad={(e) => {
                     const img = e.currentTarget;
                     if (img.naturalWidth <= 16 && img.naturalHeight <= 16) {
-                      setFaviconError(true);
+                      advanceFavicon();
                     }
                   }}
                 />

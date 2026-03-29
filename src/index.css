@@ -517,11 +517,7 @@ body {
 }
 
 .btn-primary:hover {
-  background: color-mix(
-    in srgb,
-    var(--newtab-primary-action-background) 85%,
-    #000
-  );
+  background: color-mix(in srgb, var(--newtab-primary-action-background) 85%, #000);
 }
 
 .btn:disabled {

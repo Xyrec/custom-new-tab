@@ -1,16 +1,39 @@
 /**
- * Get a favicon URL for a site.
- * Uses Google's domain-based favicon service so icons load without visiting each site.
- * Chrome's extension _favicon URL often returns a generic globe for origins that are
- * not in the local favicon cache (but the image still loads, so <img onError> never runs).
+ * Favicon URLs for top-site tiles: Chrome's cached favicon API first, then Google's
+ * domain service. Tiles advance to the next source on load error or a 16×16 placeholder.
  */
-export function getFaviconUrl(url: string): string {
+
+export function getChromeInternalFaviconUrl(pageUrl: string): string | null {
+  try {
+    new URL(pageUrl);
+    if (typeof chrome === "undefined" || !chrome.runtime?.getURL) {
+      return null;
+    }
+    const url = new URL(chrome.runtime.getURL("/_favicon/"));
+    url.searchParams.set("pageUrl", pageUrl);
+    url.searchParams.set("size", "32");
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function getGoogleFaviconUrl(url: string): string | null {
   try {
     const u = new URL(url);
     const domain = encodeURIComponent(u.hostname);
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
   } catch {
-    return "";
+    return null;
   }
 }
 
+/** Ordered favicon sources: extension API when available, then Google. */
+export function getFaviconAttempts(pageUrl: string): string[] {
+  const chromeUrl = getChromeInternalFaviconUrl(pageUrl);
+  const googleUrl = getGoogleFaviconUrl(pageUrl);
+  const out: string[] = [];
+  if (chromeUrl) out.push(chromeUrl);
+  if (googleUrl) out.push(googleUrl);
+  return out;
+}

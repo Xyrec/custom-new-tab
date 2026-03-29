@@ -3,7 +3,7 @@
   "name": "Xyrec's New Tab",
   "version": "1.0.0",
   "description": "A new tab page styled like Firefox, with a customizable top sites grid",
-  "permissions": ["topSites", "storage"],
+  "permissions": ["topSites", "storage", "favicon"],
   "chrome_url_overrides": {
     "newtab": "index.html"
   }

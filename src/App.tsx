@@ -57,13 +57,7 @@ export default function App() {
         >
           <Import size={20} />
         </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".js"
-          onChange={handleImport}
-          hidden
-        />
+        <input ref={fileRef} type="file" accept=".js" onChange={handleImport} hidden />
         {importStatus && <div className="import-toast">{importStatus}</div>}
       </div>
     </>

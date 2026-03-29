@@ -72,10 +72,7 @@ async function fetchBrowserTopSites(): Promise<{ url: string; title: string }[]>
   ];
 }
 
-function mergeSites(
-  stored: StoredData,
-  browserSites: { url: string; title: string }[],
-): TopSite[] {
+function mergeSites(stored: StoredData, browserSites: { url: string; title: string }[]): TopSite[] {
   const maxSlots = COLS * MAX_ROWS;
   const result: (TopSite | null)[] = new Array(maxSlots).fill(null);
 
@@ -242,14 +239,11 @@ export function useTopSites() {
   const importFromFirefox = useCallback(
     async (file: File) => {
       const text = await file.text();
-      const match = text.match(
-        /user_pref\("browser\.newtabpage\.pinned",\s*"(.+?)"\);/,
-      );
+      const match = text.match(/user_pref\("browser\.newtabpage\.pinned",\s*"(.+?)"\);/);
       if (!match) throw new Error("No pinned sites found in prefs.js");
 
       const jsonStr = match[1].replace(/\\"/g, '"').replace(/\\\\/g, "\\");
-      const entries: { url: string; label?: string; baseDomain?: string }[] =
-        JSON.parse(jsonStr);
+      const entries: { url: string; label?: string; baseDomain?: string }[] = JSON.parse(jsonStr);
 
       const stored = await loadStorage();
       stored.pinned = {};
