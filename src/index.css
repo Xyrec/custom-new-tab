@@ -5,71 +5,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ============================================================
-   Xyrec's New Tab — CSS Theme & Variables
-   Matches Firefox's newtab design tokens exactly
-   ============================================================ */
-
 :root {
   color-scheme: light dark;
-
-  /* Backgrounds */
-  --newtab-background-color: #f9f9fb;
-  --newtab-background-color-secondary: #fff;
-  --newtab-background-card: color-mix(in srgb, #fff 85%, transparent);
-
-  /* Text */
-  --newtab-text-primary-color: #15141a;
-  --newtab-text-secondary-color: #5b5b66;
-
-  /* Actions */
-  --newtab-primary-action-background: #0061e0;
-  --newtab-primary-action-background-dimmed: rgba(0, 97, 224, 0.15);
-
-  /* Buttons */
-  --newtab-button-static-background: #f0f0f4;
-  --newtab-button-static-hover-background: #e0e0e6;
-  --newtab-button-static-active-background: #cfcfd8;
-
-  /* Cards & Surfaces */
-  --newtab-inner-box-shadow-color: rgba(0, 0, 0, 0.1);
-  --newtab-section-card-box-shadow-color: rgba(58, 57, 68, 20%);
-  --newtab-element-secondary-color: #e0e0e6;
-
-  /* Border radius (Firefox design tokens) */
-  --border-radius-small: 4px;
-  --border-radius-medium: 8px;
-  --border-radius-large: 16px;
-  --border-radius-circle: 9999px;
-
-  /* Spacing (Firefox design tokens) */
-  --space-xxsmall: 4px;
-  --space-xsmall: 8px;
-  --space-small: 12px;
-  --space-medium: 16px;
-  --space-large: 20px;
-  --space-xlarge: 24px;
-  --space-xxlarge: 32px;
-
-  /* Sizing */
-  --icon-size-small: 12px;
-  --icon-size-default: 16px;
-  --icon-size-medium: 20px;
-  --size-item-medium: 32px;
-  --size-item-large: 40px;
-
-  /* Shadows */
-  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.15);
-  --shadow-card-hover: 0 2px 8px 0 var(--newtab-section-card-box-shadow-color);
-  --shadow-large: 0 2px 14px 0 rgba(0, 0, 0, 0.2);
-
-  /* Typography */
-  --font-size-small: 0.8125rem;
-  --font-size-root: 0.875rem;
-  --font-size-large: 1rem;
-  --font-weight-default: 400;
-  --font-weight-semibold: 600;
-  --font-weight-heading: 600;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
@@ -104,516 +41,43 @@
   --sidebar-ring: oklch(0.705 0.015 286.067);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --newtab-background-color: #2b2a33;
-    --newtab-background-color-secondary: rgb(66, 65, 77);
-    --newtab-background-card: rgba(66, 65, 77, 85%);
-    --newtab-text-primary-color: #fbfbfe;
-    --newtab-text-secondary-color: rgba(251, 251, 254, 0.69);
-    --newtab-primary-action-background: #00ddff;
-    --newtab-primary-action-background-dimmed: rgba(0, 221, 255, 0.15);
-    --newtab-button-static-background: #2b2a33;
-    --newtab-button-static-hover-background: #52525e;
-    --newtab-button-static-active-background: #5b5b66;
-    --newtab-inner-box-shadow-color: rgba(0, 0, 0, 0.2);
-    --newtab-section-card-box-shadow-color: rgba(0, 0, 0, 30%);
-    --newtab-element-secondary-color: #52525e;
-  }
-}
-
-/* ============================================================
-   Base Reset & Layout
-   ============================================================ */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  font-size: var(--font-size-root);
-}
-
-body {
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
-  background-color: var(--newtab-background-color);
-  color: var(--newtab-text-primary-color);
-  min-height: 100vh;
-}
-
-#root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-/* ============================================================
-   Outer Wrapper (matches Firefox's .outer-wrapper)
-   ============================================================ */
-
-.outer-wrapper {
-  width: 100%;
-  max-width: 882px;
-  padding-inline: 25px;
-}
-
-@media (max-width: 866px) {
-  .outer-wrapper {
-    max-width: 626px;
-  }
-}
-
-@media (max-width: 610px) {
-  .outer-wrapper {
-    max-width: 434px;
-  }
-}
-
-/* ============================================================
-   Top Sites Grid
-   ============================================================ */
-
-.top-sites {
-  position: relative;
-}
-
-.top-sites-list {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: var(--space-xsmall) 0;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-@media (max-width: 1122px) {
-  .top-sites-list {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
-@media (max-width: 610px) {
-  .top-sites-list {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 510px) {
-  .top-sites-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* ============================================================
-   Individual Top Site Tile
-   ============================================================ */
-
-.top-site-outer {
-  padding: 0 var(--space-xxsmall);
-  position: relative;
-}
-
-.top-site-inner {
-  position: relative;
-}
-
-.top-site-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: var(--newtab-text-primary-color);
-  cursor: pointer;
-  padding: var(--space-xsmall) 0;
-  border-radius: var(--border-radius-large);
-  border: none;
-  background: none;
-  width: 100%;
-  transition: background-color 150ms;
-}
-
-.top-site-button:hover {
-  background-color: var(--newtab-button-static-hover-background);
-}
-
-.top-site-button:active {
-  background-color: var(--newtab-button-static-active-background);
-}
-
-.top-site-button:focus-visible {
-  outline: 2px solid var(--newtab-primary-action-background);
-  outline-offset: -2px;
-}
-
-.tile {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--border-radius-large);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--space-xxsmall);
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.icon-wrapper {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--border-radius-large);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--newtab-background-color-secondary);
-  box-shadow: inset 0 0 0 1px var(--newtab-inner-box-shadow-color);
-  overflow: hidden;
-}
-
-.icon-fallback {
-  color: var(--newtab-text-secondary-color);
-}
-
-.top-site-icon {
-  width: 32px;
-  height: 32px;
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: var(--border-radius-small);
-}
-
-.top-site-icon.favicon-image {
-  width: 32px;
-  height: 32px;
-}
-
-.top-site-title {
-  font-size: var(--font-size-small);
-  text-align: center;
-  max-width: 80px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1.2;
-  color: var(--newtab-text-primary-color);
-}
-
-.top-site-title.pinned {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.icon-pin-small {
-  width: var(--icon-size-small);
-  height: var(--icon-size-small);
-  flex-shrink: 0;
-}
-
-.context-menu-wrapper {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  z-index: 1;
-}
-
-.context-menu-button {
-  width: 24px;
-  height: 24px;
-  background: var(--newtab-background-color-secondary);
-  border: none;
-  border-radius: var(--border-radius-small);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition:
-    opacity 150ms,
-    background-color 150ms;
-  color: var(--newtab-text-primary-color);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-}
-
-.top-site-inner:hover .context-menu-button,
-.top-site-inner:focus-within .context-menu-button,
-.context-menu-button:focus-visible {
-  opacity: 1;
-}
-
-.context-menu-button:hover {
-  background-color: var(--newtab-button-static-hover-background);
-}
-
-.context-menu-button:focus-visible {
-  outline: 2px solid var(--newtab-primary-action-background);
-  outline-offset: -2px;
-  opacity: 1;
-}
-
-.context-menu-button svg {
-  width: var(--icon-size-default);
-  height: var(--icon-size-default);
-}
-
-/* ============================================================
-   Context Menu (dropdown)
-   ============================================================ */
-
-.context-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 100;
-  min-width: 200px;
-  background: var(--newtab-background-color-secondary);
-  border-radius: var(--border-radius-medium);
-  box-shadow:
-    0 5px 10px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(0, 0, 0, 0.2);
-  padding: var(--space-xxsmall) 0;
-  list-style: none;
-}
-
-.context-menu-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xsmall);
-  padding: 6px var(--space-small);
-  cursor: pointer;
-  font-size: var(--font-size-root);
-  color: var(--newtab-text-primary-color);
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: start;
-  white-space: nowrap;
-  transition: background-color 80ms;
-}
-
-.context-menu-item:hover {
-  background-color: var(--newtab-primary-action-background);
-  color: #fff;
-}
-
-.context-menu-item:focus-visible {
-  background-color: var(--newtab-primary-action-background);
-  color: #fff;
-  outline: none;
-}
-
-.context-menu-item svg {
-  width: var(--icon-size-default);
-  height: var(--icon-size-default);
-  flex-shrink: 0;
-}
-
-.context-menu-separator {
-  height: 1px;
-  background: var(--newtab-element-secondary-color);
-  margin: var(--space-xxsmall) 0;
-}
-
-/* ============================================================
-   Add Site Button (dashed tile)
-   ============================================================ */
-
-.top-site-outer.add-button .icon-wrapper {
-  background: transparent;
-  border: 2px dashed var(--newtab-element-secondary-color);
-  box-shadow: none;
-}
-
-.top-site-outer.add-button .icon-wrapper svg {
-  width: 20px;
-  height: 20px;
-  color: var(--newtab-text-secondary-color);
-}
-
-.top-site-outer.add-button .top-site-button:hover .icon-wrapper {
-  border-color: var(--newtab-primary-action-background);
-}
-
-.top-site-outer.add-button .top-site-button:hover .icon-wrapper svg {
-  color: var(--newtab-primary-action-background);
-}
-
-/* ============================================================
-   Drag & Drop
-   ============================================================ */
-
-.top-site-outer.dragging {
-  opacity: 0.4;
-}
-
-.top-site-outer.drag-over .tile {
-  outline: 2px solid var(--newtab-primary-action-background);
-  outline-offset: 2px;
-  border-radius: var(--border-radius-large);
-}
-
-/* ============================================================
-   Edit / Add Modal
-   ============================================================ */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: var(--newtab-background-color-secondary);
-  border-radius: var(--border-radius-large);
-  padding: var(--space-xxlarge);
-  width: 400px;
-  max-width: calc(100vw - 48px);
-  box-shadow: var(--shadow-large);
-}
-
-.modal-content h3 {
-  font-size: var(--font-size-large);
-  font-weight: var(--font-weight-heading);
-  margin-bottom: var(--space-large);
-}
-
-.modal-field {
-  margin-bottom: var(--space-medium);
-}
-
-.modal-field label {
-  display: block;
-  font-size: var(--font-size-small);
-  color: var(--newtab-text-secondary-color);
-  margin-bottom: var(--space-xxsmall);
-}
-
-.modal-field input {
-  width: 100%;
-  padding: var(--space-xsmall) var(--space-small);
-  border: 1px solid var(--newtab-element-secondary-color);
-  border-radius: var(--border-radius-small);
-  font-size: var(--font-size-root);
-  background: var(--newtab-background-color);
-  color: var(--newtab-text-primary-color);
-  outline: none;
-}
-
-.modal-field input:focus {
-  border-color: var(--newtab-primary-action-background);
-  box-shadow: 0 0 0 2px var(--newtab-primary-action-background-dimmed);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-xsmall);
-  margin-top: var(--space-large);
-}
-
-.btn {
-  padding: var(--space-xsmall) var(--space-medium);
-  border-radius: var(--border-radius-small);
-  font-size: var(--font-size-root);
-  cursor: pointer;
-  border: none;
-  font-weight: var(--font-weight-semibold);
-  transition: background-color 150ms;
-}
-
-.btn-secondary {
-  background: var(--newtab-button-static-background);
-  color: var(--newtab-text-primary-color);
-}
-
-.btn-secondary:hover {
-  background: var(--newtab-button-static-hover-background);
-}
-
-.btn-primary {
-  background: var(--newtab-primary-action-background);
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: color-mix(in srgb, var(--newtab-primary-action-background) 85%, #000);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-/* ============================================================
-   Import from Firefox button (bottom-right)
-   ============================================================ */
-
-.import-button-wrapper {
-  position: fixed;
-  bottom: var(--space-xlarge);
-  right: var(--space-xlarge);
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--space-xsmall);
-}
-
-.import-button {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--border-radius-small);
-  border: none;
-  background: var(--newtab-background-color-secondary);
-  box-shadow: 0 0.8px 1.6px 0 rgba(58, 57, 68, 20%);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--newtab-text-primary-color);
-  transition: background-color 150ms;
-}
-
-.import-button:hover {
-  background: var(--newtab-button-static-hover-background);
-}
-
-.import-button:focus-visible {
-  outline: 2px solid var(--newtab-primary-action-background);
-  outline-offset: 2px;
-}
-
-.import-toast {
-  background: var(--newtab-background-color-secondary);
-  color: var(--newtab-text-primary-color);
-  padding: var(--space-xsmall) var(--space-medium);
-  border-radius: var(--border-radius-medium);
-  box-shadow: var(--shadow-large);
-  font-size: var(--font-size-small);
-  white-space: nowrap;
+.dark {
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.92 0.004 286.32);
+  --primary-foreground: oklch(0.21 0.006 285.885);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.552 0.016 285.938);
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'IBM Plex Sans Variable', sans-serif;
+  --font-sans: "IBM Plex Sans Variable", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -654,40 +118,6 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.552 0.016 285.938);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -697,5 +127,32 @@ body {
   }
   html {
     @apply font-sans;
+  }
+  #root {
+    @apply flex justify-center items-center min-h-screen;
+  }
+}
+
+/* Top sites grid — no shadcn equivalent */
+.top-sites-list {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px 0;
+  list-style: none;
+}
+
+@media (max-width: 1122px) {
+  .top-sites-list {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+@media (max-width: 610px) {
+  .top-sites-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 510px) {
+  .top-sites-list {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

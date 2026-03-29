@@ -1,7 +1,10 @@
-import { useRef, useState } from "react";
-import { useTopSites } from "./hooks/useTopSites";
-import { TopSites } from "./components/TopSites";
+import { useRef } from "react";
+import { useTopSites } from "@/hooks/useTopSites";
+import { TopSites } from "@/components/TopSites";
+import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Import } from "lucide-react";
+import { toast } from "sonner";
 
 export default function App() {
   const {
@@ -17,7 +20,6 @@ export default function App() {
   } = useTopSites();
 
   const fileRef = useRef<HTMLInputElement>(null);
-  const [importStatus, setImportStatus] = useState<string | null>(null);
 
   if (loading) return null;
 
@@ -26,18 +28,16 @@ export default function App() {
     if (!file) return;
     try {
       const count = await importFromFirefox(file);
-      setImportStatus(`Imported ${count} sites from Firefox`);
-      setTimeout(() => setImportStatus(null), 3000);
+      toast.success(`Imported ${count} sites from Firefox`);
     } catch {
-      setImportStatus("Failed — select a Firefox prefs.js file");
-      setTimeout(() => setImportStatus(null), 3000);
+      toast.error("Failed — select a Firefox prefs.js file");
     }
     if (fileRef.current) fileRef.current.value = "";
   };
 
   return (
     <>
-      <div className="outer-wrapper">
+      <div className="w-full max-w-[882px] px-6 max-[866px]:max-w-[626px] max-[610px]:max-w-[434px]">
         <TopSites
           sites={sites}
           onPin={pinSite}
@@ -49,16 +49,17 @@ export default function App() {
         />
       </div>
 
-      <div className="import-button-wrapper">
-        <button
-          className="import-button"
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+        <ModeToggle />
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => fileRef.current?.click()}
           title="Import from Firefox (prefs.js)"
         >
           <Import size={20} />
-        </button>
+        </Button>
         <input ref={fileRef} type="file" accept=".js" onChange={handleImport} hidden />
-        {importStatus && <div className="import-toast">{importStatus}</div>}
       </div>
     </>
   );

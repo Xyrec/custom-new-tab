@@ -1,9 +1,17 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import type { TopSite } from "../hooks/useTopSites";
+import type { TopSite } from "@/hooks/useTopSites";
 import { SiteEditModal } from "./SiteEditModal";
-import { getFaviconAttempts } from "../lib/favicon";
-import { getColumnsCountFromElement } from "../lib/grid";
+import { getFaviconAttempts } from "@/lib/favicon";
+import { getColumnsCountFromElement } from "@/lib/grid";
 import { Pin, Plus, Ellipsis, Pencil, Trash2, Globe } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface TopSitesProps {
   sites: TopSite[];
@@ -47,7 +55,7 @@ export function TopSites({
   const showAddButton = visibleSites.length < visibleCount;
 
   return (
-    <section className="top-sites" data-section-id="topsites">
+    <section className="relative">
       <ul ref={gridRef} className="top-sites-list">
         {visibleSites.map((site, i) => (
           <TopSiteTile
@@ -70,19 +78,20 @@ export function TopSites({
           />
         ))}
         {showAddButton && (
-          <li className="top-site-outer add-button">
-            <div className="top-site-inner">
+          <li className="px-1 relative">
+            <div className="relative">
               <button
-                className="top-site-button"
+                className="flex flex-col items-center no-underline cursor-pointer py-2 rounded-2xl border-none bg-transparent w-full transition-colors hover:bg-accent"
                 onClick={() => setEditModal({ mode: "add" })}
-                title="Add shortcut"
               >
-                <div className="tile" aria-hidden>
-                  <div className="icon-wrapper">
-                    <Plus size={20} />
+                <div className="size-16 rounded-2xl flex items-center justify-center mb-1 shrink-0">
+                  <div className="size-full rounded-2xl flex items-center justify-center border-2 border-dashed border-border bg-transparent">
+                    <Plus size={20} className="text-muted-foreground" />
                   </div>
                 </div>
-                <div className="top-site-title">Add shortcut</div>
+                <span className="text-xs text-center max-w-20 truncate leading-tight">
+                  Add shortcut
+                </span>
               </button>
             </div>
           </li>
@@ -109,7 +118,6 @@ export function TopSites({
   );
 }
 
-// Drag state shared across tiles
 let dragSourceIndex: number | null = null;
 
 function handleDragStart(index: number) {
@@ -137,34 +145,10 @@ function TopSiteTile({
   onDragStart,
   onDrop,
 }: TopSiteTileProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [faviconAttemptIndex, setFaviconAttemptIndex] = useState(0);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   const faviconAttempts = getFaviconAttempts(site.url);
-
-  // Close menu on outside click
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [menuOpen]);
-
-  // Close menu on Escape
-  useEffect(() => {
-    if (!menuOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [menuOpen]);
 
   useEffect(() => {
     setFaviconAttemptIndex(0);
@@ -201,40 +185,39 @@ function TopSiteTile({
 
   return (
     <li
-      className={`top-site-outer${dragOver ? " drag-over" : ""}`}
+      className={`px-1 relative ${dragOver ? "outline-2 outline-primary outline-offset-2 rounded-2xl" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="top-site-inner">
+      <div className="relative group">
         <a
-          className="top-site-button"
+          className="flex flex-col items-center no-underline text-foreground cursor-pointer py-2 rounded-2xl border-none bg-transparent w-full transition-colors hover:bg-accent"
           href={site.url}
           draggable
           onDragStart={(e) => {
             e.dataTransfer.effectAllowed = "move";
             e.dataTransfer.setData("text/plain", String(index));
             onDragStart(index);
-            // Add dragging class after a tick so the drag image captures the normal state
             requestAnimationFrame(() => {
-              (e.target as HTMLElement).closest(".top-site-outer")?.classList.add("dragging");
+              (e.target as HTMLElement).closest("li")?.classList.add("opacity-40");
             });
           }}
           onDragEnd={(e) => {
-            (e.target as HTMLElement).closest(".top-site-outer")?.classList.remove("dragging");
+            (e.target as HTMLElement).closest("li")?.classList.remove("opacity-40");
             dragSourceIndex = null;
           }}
         >
-          <div className="tile" aria-hidden="true">
+          <div className="size-16 rounded-2xl flex items-center justify-center mb-1 relative overflow-hidden shrink-0">
             {showFallback ? (
-              <div className="icon-wrapper">
-                <Globe size={24} className="icon-fallback" />
+              <div className="size-full rounded-2xl flex items-center justify-center bg-card shadow-[inset_0_0_0_1px_var(--border)] overflow-hidden">
+                <Globe size={24} className="text-muted-foreground" />
               </div>
             ) : (
-              <div className="icon-wrapper">
+              <div className="size-full rounded-2xl flex items-center justify-center bg-card shadow-[inset_0_0_0_1px_var(--border)] overflow-hidden">
                 <img
                   key={`${faviconAttemptIndex}-${faviconUrl}`}
-                  className="top-site-icon favicon-image"
+                  className="size-8 rounded-sm"
                   src={faviconUrl}
                   alt=""
                   loading="lazy"
@@ -249,93 +232,45 @@ function TopSiteTile({
               </div>
             )}
           </div>
-          <div className={`top-site-title${site.pinned ? " pinned" : ""}`}>
-            {site.pinned && <Pin size={12} className="icon-pin-small" />}
+          <div
+            className={`text-xs text-center max-w-20 truncate leading-tight ${site.pinned ? "flex items-center gap-0.5" : ""}`}
+          >
+            {site.pinned && <Pin size={12} className="size-3 shrink-0" />}
             <span>{site.customTitle || site.title || getDomain(site.url)}</span>
           </div>
         </a>
 
-        <div className="context-menu-wrapper" ref={menuRef}>
-          <button
-            className="context-menu-button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setMenuOpen(!menuOpen);
-            }}
-            aria-label="More options"
-            title="More options"
-          >
-            <Ellipsis size={16} />
-          </button>
-
-          {menuOpen && (
-            <ContextMenu
-              site={site}
-              onPin={() => {
-                onPin();
-                setMenuOpen(false);
-              }}
-              onUnpin={() => {
-                onUnpin();
-                setMenuOpen(false);
-              }}
-              onEdit={() => {
-                onEdit();
-                setMenuOpen(false);
-              }}
-              onRemove={() => {
-                onRemove();
-                setMenuOpen(false);
-              }}
-            />
-          )}
+        <div className="absolute top-0.5 right-0.5 z-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-xs" />}>
+              <Ellipsis size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" sideOffset={4}>
+              {site.pinned ? (
+                <DropdownMenuItem onClick={onUnpin}>
+                  <Pin size={16} />
+                  Unpin
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={onPin}>
+                  <Pin size={16} />
+                  Pin
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={onEdit}>
+                <Pencil size={16} />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={onRemove}>
+                <Trash2 size={16} />
+                Dismiss
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </li>
-  );
-}
-
-interface ContextMenuProps {
-  site: TopSite;
-  onPin: () => void;
-  onUnpin: () => void;
-  onEdit: () => void;
-  onRemove: () => void;
-}
-
-function ContextMenu({ site, onPin, onUnpin, onEdit, onRemove }: ContextMenuProps) {
-  return (
-    <ul className="context-menu" role="menu">
-      {site.pinned ? (
-        <li>
-          <button className="context-menu-item" role="menuitem" onClick={onUnpin}>
-            <Pin size={16} />
-            Unpin
-          </button>
-        </li>
-      ) : (
-        <li>
-          <button className="context-menu-item" role="menuitem" onClick={onPin}>
-            <Pin size={16} />
-            Pin
-          </button>
-        </li>
-      )}
-      <li>
-        <button className="context-menu-item" role="menuitem" onClick={onEdit}>
-          <Pencil size={16} />
-          Edit
-        </button>
-      </li>
-      <li className="context-menu-separator" role="separator" />
-      <li>
-        <button className="context-menu-item" role="menuitem" onClick={onRemove}>
-          <Trash2 size={16} />
-          Dismiss
-        </button>
-      </li>
-    </ul>
   );
 }
 
