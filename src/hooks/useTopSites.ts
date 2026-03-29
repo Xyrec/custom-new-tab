@@ -85,6 +85,65 @@ async function fetchBrowserTopSites(): Promise<
   ];
 }
 
+function mergeSites(
+  stored: StoredData,
+  browserSites: { url: string; title: string }[],
+  rows: number
+): TopSite[] {
+  const maxSlots = COLS * 4;
+  const result: (TopSite | null)[] = new Array(maxSlots).fill(null);
+
+  // Place pinned sites at their stored positions
+  for (const [posStr, pinData] of Object.entries(stored.pinned)) {
+    const pos = Number(posStr);
+    if (pos >= 0 && pos < maxSlots) {
+      result[pos] = {
+        url: pinData.url,
+        title: pinData.title || "",
+        pinned: true,
+        customTitle: pinData.title,
+        customUrl: pinData.url,
+      };
+    }
+  }
+
+  // Fill remaining slots with custom-added + browser top sites (excluding removed & already placed)
+  const placedUrls = new Set(
+    result.filter(Boolean).map((s) => normalizeUrl(s!.url))
+  );
+  const removedSet = new Set(stored.removed.map(normalizeUrl));
+
+  const toFill = [
+    ...stored.custom.filter(
+      (s) =>
+        !placedUrls.has(normalizeUrl(s.url)) &&
+        !removedSet.has(normalizeUrl(s.url))
+    ),
+    ...browserSites.filter(
+      (s) =>
+        !placedUrls.has(normalizeUrl(s.url)) &&
+        !removedSet.has(normalizeUrl(s.url))
+    ),
+  ];
+
+  let fillIdx = 0;
+  for (let i = 0; i < maxSlots && fillIdx < toFill.length; i++) {
+    if (!result[i]) {
+      const site = toFill[fillIdx++];
+      result[i] = {
+        url: site.url,
+        title: (site as TopSite).customTitle || site.title,
+        pinned: (site as TopSite).pinned || false,
+      };
+      placedUrls.add(normalizeUrl(site.url));
+    }
+  }
+
+  return result
+    .slice(0, Math.max(rows * COLS, maxSlots))
+    .filter((s): s is TopSite => s !== null);
+}
+
 export function useTopSites() {
   const [state, setState] = useState<TopSitesState>({
     sites: [],
@@ -95,70 +154,21 @@ export function useTopSites() {
   const refresh = useCallback(async () => {
     const { stored, rows } = await loadStorage();
     const browserSites = await fetchBrowserTopSites();
-
-    // Merge: pinned sites take priority at their positions,
-    // then fill in browser top sites (excluding removed ones)
-    const maxSlots = COLS * 4; // support up to 4 rows
-    const result: (TopSite | null)[] = new Array(maxSlots).fill(null);
-
-    // Place pinned sites at their stored positions
-    for (const [posStr, pinData] of Object.entries(stored.pinned)) {
-      const pos = Number(posStr);
-      if (pos >= 0 && pos < maxSlots) {
-        result[pos] = {
-          url: pinData.url,
-          title: pinData.title || "",
-          pinned: true,
-          customTitle: pinData.title,
-          customUrl: pinData.url,
-        };
-      }
-    }
-
-    // Place custom-added sites in the first available slots
-    const customToPlace = [...stored.custom];
-
-    // Fill remaining slots with browser top sites (excluding removed & already placed)
-    const placedUrls = new Set(
-      result.filter(Boolean).map((s) => normalizeUrl(s!.url))
-    );
-    const removedSet = new Set(stored.removed.map(normalizeUrl));
-
-    const toFill = [
-      ...customToPlace.filter(
-        (s) => !placedUrls.has(normalizeUrl(s.url)) && !removedSet.has(normalizeUrl(s.url))
-      ),
-      ...browserSites.filter(
-        (s) =>
-          !placedUrls.has(normalizeUrl(s.url)) &&
-          !removedSet.has(normalizeUrl(s.url))
-      ),
-    ];
-
-    let fillIdx = 0;
-    for (let i = 0; i < maxSlots && fillIdx < toFill.length; i++) {
-      if (!result[i]) {
-        const site = toFill[fillIdx++];
-        result[i] = {
-          url: site.url,
-          title: (site as TopSite).customTitle || site.title,
-          pinned: (site as TopSite).pinned || false,
-        };
-        placedUrls.add(normalizeUrl(site.url));
-      }
-    }
-
-    // Trim trailing nulls, but keep at least rows * COLS
-    const sites = result.slice(0, Math.max(rows * COLS, maxSlots)).filter(
-      (s): s is TopSite => s !== null
-    );
-
+    const sites = mergeSites(stored, browserSites, rows);
     setState({ sites, rows, loading: false });
   }, []);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    let cancelled = false;
+    (async () => {
+      const { stored, rows } = await loadStorage();
+      const browserSites = await fetchBrowserTopSites();
+      if (cancelled) return;
+      const sites = mergeSites(stored, browserSites, rows);
+      setState({ sites, rows, loading: false });
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const pinSite = useCallback(
     async (index: number) => {
