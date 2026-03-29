@@ -12,7 +12,7 @@ Chrome MV3 extension that overrides the new tab page with a Firefox-style custom
 
 - `bun dev` — start dev server (uses localStorage fallback since no Chrome APIs)
 - `bun run build` — production build to `dist/`, copies `manifest.json` automatically
-- `bun run lint` — ESLint
+- `bun run lint` — Oxlint
 - Type-check: `./node_modules/.bin/tsc --noEmit`
 
 ## Loading the extension
@@ -45,6 +45,7 @@ Chrome MV3 extension that overrides the new tab page with a Firefox-style custom
 ### Design system
 
 CSS custom properties in `index.css` match Firefox's newtab design tokens:
+
 - Colors: `--newtab-background-color`, `--newtab-text-primary-color`, `--newtab-primary-action-background`, etc.
 - Spacing: `--space-xxsmall` (4px) through `--space-xxlarge` (32px)
 - Border radius: `--border-radius-small` (4px) through `--border-radius-large` (16px)

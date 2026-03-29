@@ -193,7 +193,7 @@ function TopSiteTile({
       }
       dragSourceIndex = null;
     },
-    [index, onDrop]
+    [index, onDrop],
   );
 
   return (
@@ -214,24 +214,17 @@ function TopSiteTile({
             onDragStart(index);
             // Add dragging class after a tick so the drag image captures the normal state
             requestAnimationFrame(() => {
-              (e.target as HTMLElement)
-                .closest(".top-site-outer")
-                ?.classList.add("dragging");
+              (e.target as HTMLElement).closest(".top-site-outer")?.classList.add("dragging");
             });
           }}
           onDragEnd={(e) => {
-            (e.target as HTMLElement)
-              .closest(".top-site-outer")
-              ?.classList.remove("dragging");
+            (e.target as HTMLElement).closest(".top-site-outer")?.classList.remove("dragging");
             dragSourceIndex = null;
           }}
         >
           <div className="tile" aria-hidden="true">
             {showLetterFallback ? (
-              <div
-                className="icon-wrapper letter-fallback"
-                style={{ backgroundColor: bgColor }}
-              >
+              <div className="icon-wrapper letter-fallback" style={{ backgroundColor: bgColor }}>
                 {letter}
               </div>
             ) : (

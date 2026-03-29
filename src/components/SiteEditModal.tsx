@@ -40,11 +40,7 @@ export function SiteEditModal({
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
-      <form
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={handleSubmit}
-      >
+      <form className="modal-content" onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
         <h3>{mode === "edit" ? "Edit shortcut" : "Add shortcut"}</h3>
 
         <div className="modal-field">

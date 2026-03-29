@@ -60,9 +60,7 @@ async function saveStorage(stored: StoredData, rows: number) {
   }
 }
 
-async function fetchBrowserTopSites(): Promise<
-  { url: string; title: string }[]
-> {
+async function fetchBrowserTopSites(): Promise<{ url: string; title: string }[]> {
   if (typeof chrome !== "undefined" && chrome.topSites?.get) {
     return new Promise((resolve) => {
       chrome.topSites.get((sites) => resolve(sites || []));
@@ -88,7 +86,7 @@ async function fetchBrowserTopSites(): Promise<
 function mergeSites(
   stored: StoredData,
   browserSites: { url: string; title: string }[],
-  rows: number
+  rows: number,
 ): TopSite[] {
   const maxSlots = COLS * 4;
   const result: (TopSite | null)[] = new Array(maxSlots).fill(null);
@@ -108,21 +106,15 @@ function mergeSites(
   }
 
   // Fill remaining slots with custom-added + browser top sites (excluding removed & already placed)
-  const placedUrls = new Set(
-    result.filter(Boolean).map((s) => normalizeUrl(s!.url))
-  );
+  const placedUrls = new Set(result.filter(Boolean).map((s) => normalizeUrl(s!.url)));
   const removedSet = new Set(stored.removed.map(normalizeUrl));
 
   const toFill = [
     ...stored.custom.filter(
-      (s) =>
-        !placedUrls.has(normalizeUrl(s.url)) &&
-        !removedSet.has(normalizeUrl(s.url))
+      (s) => !placedUrls.has(normalizeUrl(s.url)) && !removedSet.has(normalizeUrl(s.url)),
     ),
     ...browserSites.filter(
-      (s) =>
-        !placedUrls.has(normalizeUrl(s.url)) &&
-        !removedSet.has(normalizeUrl(s.url))
+      (s) => !placedUrls.has(normalizeUrl(s.url)) && !removedSet.has(normalizeUrl(s.url)),
     ),
   ];
 
@@ -139,9 +131,7 @@ function mergeSites(
     }
   }
 
-  return result
-    .slice(0, Math.max(rows * COLS, maxSlots))
-    .filter((s): s is TopSite => s !== null);
+  return result.slice(0, Math.max(rows * COLS, maxSlots)).filter((s): s is TopSite => s !== null);
 }
 
 export function useTopSites() {
@@ -167,7 +157,9 @@ export function useTopSites() {
       const sites = mergeSites(stored, browserSites, rows);
       setState({ sites, rows, loading: false });
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const pinSite = useCallback(
@@ -179,7 +171,7 @@ export function useTopSites() {
       await saveStorage(stored, rows);
       refresh();
     },
-    [state.sites, refresh]
+    [state.sites, refresh],
   );
 
   const unpinSite = useCallback(
@@ -189,7 +181,7 @@ export function useTopSites() {
       await saveStorage(stored, rows);
       refresh();
     },
-    [refresh]
+    [refresh],
   );
 
   const removeSite = useCallback(
@@ -201,13 +193,11 @@ export function useTopSites() {
       // Also remove from pinned if it was pinned
       delete stored.pinned[String(index)];
       // Also remove from custom
-      stored.custom = stored.custom.filter(
-        (c) => normalizeUrl(c.url) !== normalizeUrl(site.url)
-      );
+      stored.custom = stored.custom.filter((c) => normalizeUrl(c.url) !== normalizeUrl(site.url));
       await saveStorage(stored, rows);
       refresh();
     },
-    [state.sites, refresh]
+    [state.sites, refresh],
   );
 
   const editSite = useCallback(
@@ -219,7 +209,7 @@ export function useTopSites() {
       await saveStorage(stored, rows);
       refresh();
     },
-    [refresh]
+    [refresh],
   );
 
   const addSite = useCallback(
@@ -232,13 +222,11 @@ export function useTopSites() {
         pinned: false,
       });
       // Remove from removed list if it was there
-      stored.removed = stored.removed.filter(
-        (r) => normalizeUrl(r) !== normalizeUrl(fullUrl)
-      );
+      stored.removed = stored.removed.filter((r) => normalizeUrl(r) !== normalizeUrl(fullUrl));
       await saveStorage(stored, rows);
       refresh();
     },
-    [refresh]
+    [refresh],
   );
 
   const moveSite = useCallback(
@@ -267,7 +255,7 @@ export function useTopSites() {
       await saveStorage(stored, rows);
       refresh();
     },
-    [state.sites, refresh]
+    [state.sites, refresh],
   );
 
   const setRows = useCallback(
@@ -276,7 +264,7 @@ export function useTopSites() {
       await saveStorage(stored, rows);
       refresh();
     },
-    [refresh]
+    [refresh],
   );
 
   return {
