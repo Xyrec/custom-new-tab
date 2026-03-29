@@ -13,7 +13,7 @@ Chrome MV3 extension that overrides the new tab page with a Firefox-style custom
 - `bun dev` — start dev server (uses localStorage fallback since no Chrome APIs)
 - `bun run build` — production build to `dist/`, copies `manifest.json` automatically
 - `bun run lint` — Oxlint
-- Type-check: `./node_modules/.bin/tsc --noEmit`
+- `bun run tsc` — Run type checker
 
 ## Loading the extension
 
