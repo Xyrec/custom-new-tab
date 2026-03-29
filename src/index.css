@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* ============================================================
    Xyrec's New Tab — CSS Theme & Variables
    Matches Firefox's newtab design tokens exactly
@@ -244,11 +246,8 @@ body {
   overflow: hidden;
 }
 
-.icon-wrapper.letter-fallback {
-  color: #fff;
-  font-size: 1.25rem;
-  font-weight: var(--font-weight-heading);
-  text-transform: uppercase;
+.icon-fallback {
+  color: var(--newtab-text-secondary-color);
 }
 
 .top-site-icon {
@@ -578,4 +577,3 @@ body {
   font-size: var(--font-size-small);
   white-space: nowrap;
 }
-

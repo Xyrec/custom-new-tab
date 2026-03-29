@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { TopSite } from "../hooks/useTopSites";
 import { SiteEditModal } from "./SiteEditModal";
-import { getFaviconUrl, getLetterFallback, hashColor } from "../lib/favicon";
-import { Pin, Plus, Ellipsis, Pencil, Trash2 } from "lucide-react";
+import { getFaviconUrl } from "../lib/favicon";
+import { Pin, Plus, Ellipsis, Pencil, Trash2, Globe } from "lucide-react";
 
 interface TopSitesProps {
   sites: TopSite[];
@@ -170,10 +170,8 @@ function TopSiteTile({
     return () => document.removeEventListener("keydown", handler);
   }, [menuOpen]);
 
-  const letter = getLetterFallback(site.title || site.url);
-  const bgColor = hashColor(site.url);
   const faviconUrl = getFaviconUrl(site.url);
-  const showLetterFallback = !faviconUrl || faviconError;
+  const showFallback = !faviconUrl || faviconError;
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -223,9 +221,9 @@ function TopSiteTile({
           }}
         >
           <div className="tile" aria-hidden="true">
-            {showLetterFallback ? (
-              <div className="icon-wrapper letter-fallback" style={{ backgroundColor: bgColor }}>
-                {letter}
+            {showFallback ? (
+              <div className="icon-wrapper">
+                <Globe size={24} className="icon-fallback" />
               </div>
             ) : (
               <div className="icon-wrapper">
@@ -235,6 +233,12 @@ function TopSiteTile({
                   alt=""
                   loading="lazy"
                   onError={() => setFaviconError(true)}
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    if (img.naturalWidth <= 16 && img.naturalHeight <= 16) {
+                      setFaviconError(true);
+                    }
+                  }}
                 />
               </div>
             )}
