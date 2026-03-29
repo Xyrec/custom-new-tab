@@ -1,111 +1,666 @@
+/* ============================================================
+   Firefox New Tab — CSS Theme & Variables
+   Matches Firefox's newtab design tokens exactly
+   ============================================================ */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
   color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  /* Backgrounds */
+  --newtab-background-color: #f9f9fb;
+  --newtab-background-color-secondary: #fff;
+  --newtab-background-card: color-mix(in srgb, #fff 85%, transparent);
+
+  /* Text */
+  --newtab-text-primary-color: #15141a;
+  --newtab-text-secondary-color: #5b5b66;
+
+  /* Actions */
+  --newtab-primary-action-background: #0061e0;
+  --newtab-primary-action-background-dimmed: rgba(0, 97, 224, 0.15);
+
+  /* Buttons */
+  --newtab-button-static-background: #f0f0f4;
+  --newtab-button-static-hover-background: #e0e0e6;
+  --newtab-button-static-active-background: #cfcfd8;
+
+  /* Cards & Surfaces */
+  --newtab-inner-box-shadow-color: rgba(0, 0, 0, 0.1);
+  --newtab-section-card-box-shadow-color: rgba(58, 57, 68, 20%);
+  --newtab-element-secondary-color: #e0e0e6;
+
+  /* Border radius (Firefox design tokens) */
+  --border-radius-small: 4px;
+  --border-radius-medium: 8px;
+  --border-radius-large: 16px;
+  --border-radius-circle: 9999px;
+
+  /* Spacing (Firefox design tokens) */
+  --space-xxsmall: 4px;
+  --space-xsmall: 8px;
+  --space-small: 12px;
+  --space-medium: 16px;
+  --space-large: 20px;
+  --space-xlarge: 24px;
+  --space-xxlarge: 32px;
+
+  /* Sizing */
+  --icon-size-small: 12px;
+  --icon-size-default: 16px;
+  --icon-size-medium: 20px;
+  --size-item-medium: 32px;
+  --size-item-large: 40px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.15);
+  --shadow-card-hover: 0 2px 8px 0 var(--newtab-section-card-box-shadow-color);
+  --shadow-large: 0 2px 14px 0 rgba(0, 0, 0, 0.2);
+
+  /* Typography */
+  --font-size-small: 0.8125rem;
+  --font-size-root: 0.875rem;
+  --font-size-large: 1rem;
+  --font-weight-default: 400;
+  --font-weight-semibold: 600;
+  --font-weight-heading: 600;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+    --newtab-background-color: #2b2a33;
+    --newtab-background-color-secondary: rgb(66, 65, 77);
+    --newtab-background-card: rgba(66, 65, 77, 85%);
+    --newtab-text-primary-color: #fbfbfe;
+    --newtab-text-secondary-color: rgba(251, 251, 254, 0.69);
+    --newtab-primary-action-background: #00ddff;
+    --newtab-primary-action-background-dimmed: rgba(0, 221, 255, 0.15);
+    --newtab-button-static-background: #2b2a33;
+    --newtab-button-static-hover-background: #52525e;
+    --newtab-button-static-active-background: #5b5b66;
+    --newtab-inner-box-shadow-color: rgba(0, 0, 0, 0.2);
+    --newtab-section-card-box-shadow-color: rgba(0, 0, 0, 30%);
+    --newtab-element-secondary-color: #52525e;
   }
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+/* ============================================================
+   Base Reset & Layout
+   ============================================================ */
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-root);
 }
 
 body {
-  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--newtab-background-color);
+  color: var(--newtab-text-primary-color);
+  min-height: 100vh;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+#root {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding-top: 80px;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+/* ============================================================
+   Outer Wrapper (matches Firefox's .outer-wrapper)
+   ============================================================ */
+
+.outer-wrapper {
+  width: 100%;
+  max-width: 882px;
+  padding-inline: 25px;
+}
+
+@media (max-width: 866px) {
+  .outer-wrapper {
+    max-width: 626px;
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+@media (max-width: 610px) {
+  .outer-wrapper {
+    max-width: 434px;
   }
 }
-p {
+
+/* ============================================================
+   Top Sites Grid
+   ============================================================ */
+
+.top-sites {
+  position: relative;
+}
+
+.top-sites-list {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--space-xsmall) 0;
+  list-style: none;
   margin: 0;
+  padding: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+@media (max-width: 1122px) {
+  .top-sites-list {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+@media (max-width: 610px) {
+  .top-sites-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 510px) {
+  .top-sites-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ============================================================
+   Individual Top Site Tile
+   ============================================================ */
+
+.top-site-outer {
+  padding: 0 var(--space-xxsmall);
+  position: relative;
+}
+
+.top-site-inner {
+  position: relative;
+}
+
+.top-site-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--newtab-text-primary-color);
+  cursor: pointer;
+  padding: var(--space-xsmall) 0;
+  border-radius: var(--border-radius-large);
+  border: none;
+  background: none;
+  width: 100%;
+  transition: background-color 150ms;
+}
+
+.top-site-button:hover {
+  background-color: var(--newtab-button-static-hover-background);
+}
+
+.top-site-button:active {
+  background-color: var(--newtab-button-static-active-background);
+}
+
+.top-site-button:focus-visible {
+  outline: 2px solid var(--newtab-primary-action-background);
+  outline-offset: -2px;
+}
+
+.tile {
+  width: var(--size-item-large);
+  height: var(--size-item-large);
+  border-radius: var(--border-radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xxsmall);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.icon-wrapper {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--newtab-background-color-secondary);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.icon-wrapper.letter-fallback {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-heading);
+  text-transform: uppercase;
+}
+
+.top-site-icon {
+  width: 32px;
+  height: 32px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: var(--border-radius-small);
+}
+
+.top-site-icon.favicon-image {
+  width: 32px;
+  height: 32px;
+}
+
+.top-site-title {
+  font-size: var(--font-size-small);
+  text-align: center;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+  color: var(--newtab-text-primary-color);
+}
+
+.top-site-title.pinned {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.icon-pin-small {
+  width: var(--icon-size-small);
+  height: var(--icon-size-small);
+  flex-shrink: 0;
+}
+
+.context-menu-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--size-item-medium);
+  height: var(--size-item-medium);
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-small);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 150ms, background-color 150ms;
+  color: var(--newtab-text-primary-color);
+  z-index: 1;
+}
+
+.top-site-inner:hover .context-menu-button,
+.top-site-inner:focus-within .context-menu-button,
+.context-menu-button:focus-visible {
+  opacity: 1;
+}
+
+.context-menu-button:hover {
+  background-color: var(--newtab-button-static-hover-background);
+}
+
+.context-menu-button:focus-visible {
+  outline: 2px solid var(--newtab-primary-action-background);
+  outline-offset: -2px;
+  opacity: 1;
+}
+
+.context-menu-button svg {
+  width: var(--icon-size-default);
+  height: var(--icon-size-default);
+  fill: currentColor;
+}
+
+/* ============================================================
+   Context Menu (dropdown)
+   ============================================================ */
+
+.context-menu-wrapper {
+  position: relative;
+}
+
+.context-menu {
+  position: absolute;
+  top: calc(var(--size-item-medium) + 4px);
+  right: 0;
+  z-index: 100;
+  min-width: 200px;
+  background: var(--newtab-background-color-secondary);
+  border-radius: var(--border-radius-medium);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  padding: var(--space-xxsmall) 0;
+  list-style: none;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xsmall);
+  padding: 6px var(--space-small);
+  cursor: pointer;
+  font-size: var(--font-size-root);
+  color: var(--newtab-text-primary-color);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: start;
+  white-space: nowrap;
+  transition: background-color 80ms;
+}
+
+.context-menu-item:hover {
+  background-color: var(--newtab-primary-action-background);
+  color: #fff;
+}
+
+.context-menu-item:focus-visible {
+  background-color: var(--newtab-primary-action-background);
+  color: #fff;
+  outline: none;
+}
+
+.context-menu-item svg {
+  width: var(--icon-size-default);
+  height: var(--icon-size-default);
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: var(--newtab-element-secondary-color);
+  margin: var(--space-xxsmall) 0;
+}
+
+/* ============================================================
+   Add Site Button (dashed tile)
+   ============================================================ */
+
+.top-site-outer.add-button .icon-wrapper {
+  background: transparent;
+  border: 2px dashed var(--newtab-element-secondary-color);
+  box-shadow: none;
+}
+
+.top-site-outer.add-button .icon-wrapper svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--newtab-text-secondary-color);
+}
+
+.top-site-outer.add-button .top-site-button:hover .icon-wrapper {
+  border-color: var(--newtab-primary-action-background);
+}
+
+.top-site-outer.add-button .top-site-button:hover .icon-wrapper svg {
+  fill: var(--newtab-primary-action-background);
+}
+
+/* ============================================================
+   Drag & Drop
+   ============================================================ */
+
+.top-site-outer.dragging {
+  opacity: 0.4;
+}
+
+.top-site-outer.drag-over .tile {
+  outline: 2px solid var(--newtab-primary-action-background);
+  outline-offset: 2px;
+  border-radius: var(--border-radius-medium);
+}
+
+/* ============================================================
+   Edit / Add Modal
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--newtab-background-color-secondary);
+  border-radius: var(--border-radius-large);
+  padding: var(--space-xxlarge);
+  width: 400px;
+  max-width: calc(100vw - 48px);
+  box-shadow: var(--shadow-large);
+}
+
+.modal-content h3 {
+  font-size: var(--font-size-large);
+  font-weight: var(--font-weight-heading);
+  margin-bottom: var(--space-large);
+}
+
+.modal-field {
+  margin-bottom: var(--space-medium);
+}
+
+.modal-field label {
+  display: block;
+  font-size: var(--font-size-small);
+  color: var(--newtab-text-secondary-color);
+  margin-bottom: var(--space-xxsmall);
+}
+
+.modal-field input {
+  width: 100%;
+  padding: var(--space-xsmall) var(--space-small);
+  border: 1px solid var(--newtab-element-secondary-color);
+  border-radius: var(--border-radius-small);
+  font-size: var(--font-size-root);
+  background: var(--newtab-background-color);
+  color: var(--newtab-text-primary-color);
+  outline: none;
+}
+
+.modal-field input:focus {
+  border-color: var(--newtab-primary-action-background);
+  box-shadow: 0 0 0 2px var(--newtab-primary-action-background-dimmed);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xsmall);
+  margin-top: var(--space-large);
+}
+
+.btn {
+  padding: var(--space-xsmall) var(--space-medium);
+  border-radius: var(--border-radius-small);
+  font-size: var(--font-size-root);
+  cursor: pointer;
+  border: none;
+  font-weight: var(--font-weight-semibold);
+  transition: background-color 150ms;
+}
+
+.btn-secondary {
+  background: var(--newtab-button-static-background);
+  color: var(--newtab-text-primary-color);
+}
+
+.btn-secondary:hover {
+  background: var(--newtab-button-static-hover-background);
+}
+
+.btn-primary {
+  background: var(--newtab-primary-action-background);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: color-mix(
+    in srgb,
+    var(--newtab-primary-action-background) 85%,
+    #000
+  );
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ============================================================
+   Customize button (gear in bottom-right)
+   ============================================================ */
+
+.personalize-button-wrapper {
+  position: fixed;
+  bottom: var(--space-xlarge);
+  right: var(--space-xlarge);
+  z-index: 50;
+}
+
+.personalize-button {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-small);
+  border: none;
+  background: var(--newtab-background-color-secondary);
+  box-shadow: 0 0.8px 1.6px 0 rgba(58, 57, 68, 20%);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--newtab-text-primary-color);
+  transition: background-color 150ms;
+}
+
+.personalize-button:hover {
+  background: var(--newtab-button-static-hover-background);
+}
+
+.personalize-button:focus-visible {
+  outline: 2px solid var(--newtab-primary-action-background);
+  outline-offset: 2px;
+}
+
+.personalize-button svg {
+  width: var(--icon-size-medium);
+  height: var(--icon-size-medium);
+  fill: currentColor;
+}
+
+/* ============================================================
+   Settings Panel (slide-in from right, Firefox-style)
+   ============================================================ */
+
+.settings-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 432px;
+  max-width: 100vw;
+  background: var(--newtab-background-color-secondary);
+  box-shadow: var(--shadow-large);
+  z-index: 201;
+  padding: var(--space-xxlarge);
+  overflow-y: auto;
+  animation: slideIn 250ms cubic-bezier(0.46, 0.03, 0.52, 0.96);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.settings-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xxlarge);
+}
+
+.settings-panel-header h2 {
+  font-size: var(--font-size-large);
+  font-weight: var(--font-weight-heading);
+}
+
+.settings-close-button {
+  width: var(--size-item-medium);
+  height: var(--size-item-medium);
+  border-radius: var(--border-radius-small);
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--newtab-text-primary-color);
+  transition: background-color 150ms;
+}
+
+.settings-close-button:hover {
+  background: var(--newtab-button-static-hover-background);
+}
+
+.settings-close-button svg {
+  width: var(--icon-size-default);
+  height: var(--icon-size-default);
+  fill: currentColor;
+}
+
+.setting-subsection {
+  margin-top: var(--space-medium);
+  padding-top: var(--space-medium);
+  border-top: 1px solid var(--newtab-element-secondary-color);
+}
+
+.setting-subsection h3 {
+  font-size: var(--font-size-root);
+  font-weight: var(--font-weight-heading);
+  margin-bottom: var(--space-xsmall);
+}
+
+.rows-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xsmall);
+}
+
+.rows-selector label {
+  font-size: var(--font-size-small);
+  color: var(--newtab-text-secondary-color);
+}
+
+.rows-selector select {
+  padding: var(--space-xxsmall) var(--space-xsmall);
+  border: 1px solid var(--newtab-element-secondary-color);
+  border-radius: var(--border-radius-small);
+  background: var(--newtab-background-color);
+  color: var(--newtab-text-primary-color);
+  font-size: var(--font-size-small);
 }
