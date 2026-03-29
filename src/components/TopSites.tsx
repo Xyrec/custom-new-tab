@@ -41,7 +41,7 @@ export function TopSites({
     url?: string;
   } | null>(null);
 
-  const gridRef = useRef<HTMLUListElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const [cols, setCols] = useState(8);
   useEffect(() => {
     const update = () => setCols(getColumnsCountFromElement(gridRef.current));
@@ -55,8 +55,8 @@ export function TopSites({
   const showAddButton = visibleSites.length < visibleCount;
 
   return (
-    <section>
-      <ul ref={gridRef}>
+    <>
+      <div ref={gridRef}>
         {visibleSites.map((site, i) => (
           <TopSiteTile
             key={`${site.url}-${i}`}
@@ -78,20 +78,14 @@ export function TopSites({
           />
         ))}
         {showAddButton && (
-          <li>
-            <div>
-              <button onClick={() => setEditModal({ mode: "add" })}>
-                <div>
-                  <div>
-                    <Plus size={20} />
-                  </div>
-                </div>
-                <span>Add shortcut</span>
-              </button>
-            </div>
-          </li>
+          <>
+            <Button onClick={() => setEditModal({ mode: "add" })}>
+              <Plus size={20} />
+              Add shortcut
+            </Button>
+          </>
         )}
-      </ul>
+      </div>
 
       {editModal && (
         <SiteEditModal
@@ -109,7 +103,7 @@ export function TopSites({
           onCancel={() => setEditModal(null)}
         />
       )}
-    </section>
+    </>
   );
 }
 
@@ -181,86 +175,72 @@ function TopSiteTile({
   );
 
   return (
-    <li
+    <div
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div>
-        <a
-          href={site.url}
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.effectAllowed = "move";
-            e.dataTransfer.setData("text/plain", String(index));
-            onDragStart(index);
-          }}
-          onDragEnd={() => {
-            dragSourceIndex = null;
-          }}
-        >
-          <div>
-            {showFallback ? (
-              <div>
-                <Globe size={24} />
-              </div>
-            ) : (
-              <div>
-                <img
-                  key={`${faviconAttemptIndex}-${faviconUrl}`}
-                  src={faviconUrl}
-                  alt=""
-                  loading="lazy"
-                  onError={advanceFavicon}
-                  onLoad={(e) => {
-                    const img = e.currentTarget;
-                    if (img.naturalWidth <= 16 && img.naturalHeight <= 16) {
-                      advanceFavicon();
-                    }
-                  }}
-                />
-              </div>
-            )}
-          </div>
-          <div>
-            {site.pinned && <Pin size={12} />}
-            <span>{site.customTitle || site.title || getDomain(site.url)}</span>
-          </div>
-        </a>
+      <a
+        href={site.url}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", String(index));
+          onDragStart(index);
+        }}
+        onDragEnd={() => {
+          dragSourceIndex = null;
+        }}
+      >
+        {showFallback ? (
+          <Globe size={24} />
+        ) : (
+          <img
+            key={`${faviconAttemptIndex}-${faviconUrl}`}
+            src={faviconUrl}
+            alt=""
+            loading="lazy"
+            onError={advanceFavicon}
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              if (img.naturalWidth <= 16 && img.naturalHeight <= 16) {
+                advanceFavicon();
+              }
+            }}
+          />
+        )}
+        {site.pinned && <Pin size={12} />}
+        <span>{site.customTitle || site.title || getDomain(site.url)}</span>
+      </a>
 
-        <div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="ghost" size="icon-xs" />}
-            >
-              <Ellipsis size={16} />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={4}>
-              {site.pinned ? (
-                <DropdownMenuItem onClick={onUnpin}>
-                  <Pin size={16} />
-                  Unpin
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onClick={onPin}>
-                  <Pin size={16} />
-                  Pin
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={onEdit}>
-                <Pencil size={16} />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onClick={onRemove}>
-                <Trash2 size={16} />
-                Dismiss
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </li>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-xs" />}>
+          <Ellipsis size={16} />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" sideOffset={4}>
+          {site.pinned ? (
+            <DropdownMenuItem onClick={onUnpin}>
+              <Pin size={16} />
+              Unpin
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={onPin}>
+              <Pin size={16} />
+              Pin
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={onEdit}>
+            <Pencil size={16} />
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onClick={onRemove}>
+            <Trash2 size={16} />
+            Dismiss
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 

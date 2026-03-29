@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Form } from "@base-ui/react";
 
 interface SiteEditModalProps {
   mode: "edit" | "add";
@@ -39,32 +40,30 @@ export function SiteEditModal({
     <Dialog open onOpenChange={(open) => !open && onCancel()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{mode === "edit" ? "Edit shortcut" : "Add shortcut"}</DialogTitle>
+          <DialogTitle>
+            {mode === "edit" ? "Edit shortcut" : "Add shortcut"}
+          </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div>
-            <Label htmlFor="site-title">Title</Label>
-            <Input
-              id="site-title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Google"
-              autoFocus
-            />
-          </div>
+        <Form onSubmit={handleSubmit}>
+          <Label htmlFor="site-title">Title</Label>
+          <Input
+            id="site-title"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Google"
+            autoFocus
+          />
 
-          <div>
-            <Label htmlFor="site-url">URL</Label>
-            <Input
-              id="site-url"
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="e.g. https://google.com"
-            />
-          </div>
+          <Label htmlFor="site-url">URL</Label>
+          <Input
+            id="site-url"
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="e.g. https://google.com"
+          />
 
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={onCancel}>
@@ -74,7 +73,7 @@ export function SiteEditModal({
               Save
             </Button>
           </DialogFooter>
-        </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
