@@ -10,13 +10,12 @@ export interface TopSite {
 
 interface TopSitesState {
   sites: TopSite[];
-  rows: number;
   loading: boolean;
 }
 
 const STORAGE_KEY = "topSitesCustomizations";
-const ROWS_KEY = "topSitesRows";
 const COLS = 8; // max columns at widest breakpoint
+const MAX_ROWS = 3;
 
 interface StoredData {
   pinned: Record<string, { title?: string; url: string; originalUrl?: string }>;
@@ -28,35 +27,25 @@ function getEmptyStore(): StoredData {
   return { pinned: {}, removed: [], custom: [] };
 }
 
-async function loadStorage(): Promise<{ stored: StoredData; rows: number }> {
+async function loadStorage(): Promise<StoredData> {
   if (typeof chrome !== "undefined" && chrome.storage?.local) {
-    const data = await chrome.storage.local.get([STORAGE_KEY, ROWS_KEY]);
-    return {
-      stored: (data[STORAGE_KEY] as StoredData) || getEmptyStore(),
-      rows: (data[ROWS_KEY] as number) || 2,
-    };
+    const data = await chrome.storage.local.get([STORAGE_KEY]);
+    return (data[STORAGE_KEY] as StoredData) || getEmptyStore();
   }
   // Fallback for dev mode (no chrome APIs)
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return {
-      stored: raw ? JSON.parse(raw) : getEmptyStore(),
-      rows: Number(localStorage.getItem(ROWS_KEY)) || 2,
-    };
+    return raw ? JSON.parse(raw) : getEmptyStore();
   } catch {
-    return { stored: getEmptyStore(), rows: 2 };
+    return getEmptyStore();
   }
 }
 
-async function saveStorage(stored: StoredData, rows: number) {
+async function saveStorage(stored: StoredData) {
   if (typeof chrome !== "undefined" && chrome.storage?.local) {
-    await chrome.storage.local.set({
-      [STORAGE_KEY]: stored,
-      [ROWS_KEY]: rows,
-    });
+    await chrome.storage.local.set({ [STORAGE_KEY]: stored });
   } else {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-    localStorage.setItem(ROWS_KEY, String(rows));
   }
 }
 
@@ -86,9 +75,8 @@ async function fetchBrowserTopSites(): Promise<{ url: string; title: string }[]>
 function mergeSites(
   stored: StoredData,
   browserSites: { url: string; title: string }[],
-  rows: number,
 ): TopSite[] {
-  const maxSlots = COLS * 4;
+  const maxSlots = COLS * MAX_ROWS;
   const result: (TopSite | null)[] = new Array(maxSlots).fill(null);
 
   // Place pinned sites at their stored positions
@@ -131,31 +119,30 @@ function mergeSites(
     }
   }
 
-  return result.slice(0, Math.max(rows * COLS, maxSlots)).filter((s): s is TopSite => s !== null);
+  return result.filter((s): s is TopSite => s !== null);
 }
 
 export function useTopSites() {
   const [state, setState] = useState<TopSitesState>({
     sites: [],
-    rows: 2,
     loading: true,
   });
 
   const refresh = useCallback(async () => {
-    const { stored, rows } = await loadStorage();
+    const stored = await loadStorage();
     const browserSites = await fetchBrowserTopSites();
-    const sites = mergeSites(stored, browserSites, rows);
-    setState({ sites, rows, loading: false });
+    const sites = mergeSites(stored, browserSites);
+    setState({ sites, loading: false });
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { stored, rows } = await loadStorage();
+      const stored = await loadStorage();
       const browserSites = await fetchBrowserTopSites();
       if (cancelled) return;
-      const sites = mergeSites(stored, browserSites, rows);
-      setState({ sites, rows, loading: false });
+      const sites = mergeSites(stored, browserSites);
+      setState({ sites, loading: false });
     })();
     return () => {
       cancelled = true;
@@ -164,11 +151,11 @@ export function useTopSites() {
 
   const pinSite = useCallback(
     async (index: number) => {
-      const { stored, rows } = await loadStorage();
+      const stored = await loadStorage();
       const site = state.sites[index];
       if (!site) return;
       stored.pinned[String(index)] = { title: site.title, url: site.url };
-      await saveStorage(stored, rows);
+      await saveStorage(stored);
       refresh();
     },
     [state.sites, refresh],
@@ -176,9 +163,9 @@ export function useTopSites() {
 
   const unpinSite = useCallback(
     async (index: number) => {
-      const { stored, rows } = await loadStorage();
+      const stored = await loadStorage();
       delete stored.pinned[String(index)];
-      await saveStorage(stored, rows);
+      await saveStorage(stored);
       refresh();
     },
     [refresh],
@@ -186,15 +173,13 @@ export function useTopSites() {
 
   const removeSite = useCallback(
     async (index: number) => {
-      const { stored, rows } = await loadStorage();
+      const stored = await loadStorage();
       const site = state.sites[index];
       if (!site) return;
       stored.removed.push(site.url);
-      // Also remove from pinned if it was pinned
       delete stored.pinned[String(index)];
-      // Also remove from custom
       stored.custom = stored.custom.filter((c) => normalizeUrl(c.url) !== normalizeUrl(site.url));
-      await saveStorage(stored, rows);
+      await saveStorage(stored);
       refresh();
     },
     [state.sites, refresh],
@@ -202,11 +187,10 @@ export function useTopSites() {
 
   const editSite = useCallback(
     async (index: number, newTitle: string, newUrl: string) => {
-      const { stored, rows } = await loadStorage();
+      const stored = await loadStorage();
       const url = newUrl.startsWith("http") ? newUrl : `https://${newUrl}`;
-      // Update pinned entry
       stored.pinned[String(index)] = { title: newTitle, url };
-      await saveStorage(stored, rows);
+      await saveStorage(stored);
       refresh();
     },
     [refresh],
@@ -214,16 +198,15 @@ export function useTopSites() {
 
   const addSite = useCallback(
     async (title: string, url: string) => {
-      const { stored, rows } = await loadStorage();
+      const stored = await loadStorage();
       const fullUrl = url.startsWith("http") ? url : `https://${url}`;
       stored.custom.push({
         url: fullUrl,
         title,
         pinned: false,
       });
-      // Remove from removed list if it was there
       stored.removed = stored.removed.filter((r) => normalizeUrl(r) !== normalizeUrl(fullUrl));
-      await saveStorage(stored, rows);
+      await saveStorage(stored);
       refresh();
     },
     [refresh],
@@ -231,15 +214,13 @@ export function useTopSites() {
 
   const moveSite = useCallback(
     async (fromIndex: number, toIndex: number) => {
-      const { stored, rows } = await loadStorage();
+      const stored = await loadStorage();
       const sites = [...state.sites];
 
-      // Swap sites
       const temp = sites[fromIndex];
       sites[fromIndex] = sites[toIndex];
       sites[toIndex] = temp;
 
-      // Update pinned positions: re-pin any pinned sites at their new positions
       const newPinned: StoredData["pinned"] = {};
       for (const [posStr, pinData] of Object.entries(stored.pinned)) {
         const pos = Number(posStr);
@@ -252,24 +233,14 @@ export function useTopSites() {
         }
       }
       stored.pinned = newPinned;
-      await saveStorage(stored, rows);
+      await saveStorage(stored);
       refresh();
     },
     [state.sites, refresh],
   );
 
-  const setRows = useCallback(
-    async (rows: number) => {
-      const { stored } = await loadStorage();
-      await saveStorage(stored, rows);
-      refresh();
-    },
-    [refresh],
-  );
-
   return {
     sites: state.sites,
-    rows: state.rows,
     loading: state.loading,
     pinSite,
     unpinSite,
@@ -277,7 +248,6 @@ export function useTopSites() {
     editSite,
     addSite,
     moveSite,
-    setRows,
   };
 }
 

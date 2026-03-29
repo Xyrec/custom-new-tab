@@ -2,11 +2,10 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { TopSite } from "../hooks/useTopSites";
 import { SiteEditModal } from "./SiteEditModal";
 import { getFaviconUrl, getLetterFallback, hashColor } from "../lib/favicon";
-import { PinIcon, PlusIcon, MoreIcon } from "./Icons";
+import { Pin, Plus, Ellipsis, Pencil, Trash2 } from "lucide-react";
 
 interface TopSitesProps {
   sites: TopSite[];
-  rows: number;
   onPin: (index: number) => void;
   onUnpin: (index: number) => void;
   onRemove: (index: number) => void;
@@ -15,9 +14,10 @@ interface TopSitesProps {
   onMove: (from: number, to: number) => void;
 }
 
+const MAX_ROWS = 3;
+
 export function TopSites({
   sites,
-  rows,
   onPin,
   onUnpin,
   onRemove,
@@ -48,7 +48,7 @@ export function TopSites({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const visibleCount = rows * cols;
+  const visibleCount = MAX_ROWS * cols;
   const visibleSites = sites.slice(0, visibleCount);
   const showAddButton = visibleSites.length < visibleCount;
 
@@ -85,7 +85,7 @@ export function TopSites({
               >
                 <div className="tile" aria-hidden>
                   <div className="icon-wrapper">
-                    <PlusIcon />
+                    <Plus size={20} />
                   </div>
                 </div>
                 <div className="top-site-title">Add shortcut</div>
@@ -240,7 +240,7 @@ function TopSiteTile({
             )}
           </div>
           <div className={`top-site-title${site.pinned ? " pinned" : ""}`}>
-            {site.pinned && <PinIcon />}
+            {site.pinned && <Pin size={12} className="icon-pin-small" />}
             <span>{site.customTitle || site.title || getDomain(site.url)}</span>
           </div>
         </a>
@@ -256,7 +256,7 @@ function TopSiteTile({
             aria-label="More options"
             title="More options"
           >
-            <MoreIcon />
+            <Ellipsis size={16} />
           </button>
 
           {menuOpen && (
@@ -300,32 +300,28 @@ function ContextMenu({ site, onPin, onUnpin, onEdit, onRemove }: ContextMenuProp
       {site.pinned ? (
         <li>
           <button className="context-menu-item" role="menuitem" onClick={onUnpin}>
-            <PinIcon />
+            <Pin size={16} />
             Unpin
           </button>
         </li>
       ) : (
         <li>
           <button className="context-menu-item" role="menuitem" onClick={onPin}>
-            <PinIcon />
+            <Pin size={16} />
             Pin
           </button>
         </li>
       )}
       <li>
         <button className="context-menu-item" role="menuitem" onClick={onEdit}>
-          <svg viewBox="0 0 16 16">
-            <path d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-.5.3l-3 .7a.5.5 0 0 1-.6-.6l.7-3a1 1 0 0 1 .3-.5l8-8z" />
-          </svg>
+          <Pencil size={16} />
           Edit
         </button>
       </li>
       <li className="context-menu-separator" role="separator" />
       <li>
         <button className="context-menu-item" role="menuitem" onClick={onRemove}>
-          <svg viewBox="0 0 16 16">
-            <path d="M5 2V1h6v1h4v1H1V2h4zm1 3v8h1V5H6zm3 0v8h1V5H9zM3 4v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4H3z" />
-          </svg>
+          <Trash2 size={16} />
           Dismiss
         </button>
       </li>

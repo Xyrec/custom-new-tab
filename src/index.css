@@ -1,5 +1,5 @@
 /* ============================================================
-   Firefox New Tab — CSS Theme & Variables
+   Xyrec's New Tab — CSS Theme & Variables
    Matches Firefox's newtab design tokens exactly
    ============================================================ */
 
@@ -221,9 +221,9 @@ body {
 }
 
 .tile {
-  width: var(--size-item-large);
-  height: var(--size-item-large);
-  border-radius: var(--border-radius-medium);
+  width: 64px;
+  height: 64px;
+  border-radius: var(--border-radius-large);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -236,12 +236,12 @@ body {
 .icon-wrapper {
   width: 100%;
   height: 100%;
-  border-radius: var(--border-radius-medium);
+  border-radius: var(--border-radius-large);
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: var(--newtab-background-color-secondary);
-  box-shadow: var(--shadow-card);
+  box-shadow: inset 0 0 0 1px var(--newtab-inner-box-shadow-color);
   overflow: hidden;
 }
 
@@ -289,13 +289,17 @@ body {
   flex-shrink: 0;
 }
 
-.context-menu-button {
+.context-menu-wrapper {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: var(--size-item-medium);
-  height: var(--size-item-medium);
-  background: none;
+  top: 2px;
+  right: 2px;
+  z-index: 1;
+}
+
+.context-menu-button {
+  width: 24px;
+  height: 24px;
+  background: var(--newtab-background-color-secondary);
   border: none;
   border-radius: var(--border-radius-small);
   cursor: pointer;
@@ -307,7 +311,7 @@ body {
     opacity 150ms,
     background-color 150ms;
   color: var(--newtab-text-primary-color);
-  z-index: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .top-site-inner:hover .context-menu-button,
@@ -329,20 +333,15 @@ body {
 .context-menu-button svg {
   width: var(--icon-size-default);
   height: var(--icon-size-default);
-  fill: currentColor;
 }
 
 /* ============================================================
    Context Menu (dropdown)
    ============================================================ */
 
-.context-menu-wrapper {
-  position: relative;
-}
-
 .context-menu {
   position: absolute;
-  top: calc(var(--size-item-medium) + 4px);
+  top: calc(100% + 4px);
   right: 0;
   z-index: 100;
   min-width: 200px;
@@ -385,7 +384,6 @@ body {
 .context-menu-item svg {
   width: var(--icon-size-default);
   height: var(--icon-size-default);
-  fill: currentColor;
   flex-shrink: 0;
 }
 
@@ -408,7 +406,7 @@ body {
 .top-site-outer.add-button .icon-wrapper svg {
   width: 20px;
   height: 20px;
-  fill: var(--newtab-text-secondary-color);
+  color: var(--newtab-text-secondary-color);
 }
 
 .top-site-outer.add-button .top-site-button:hover .icon-wrapper {
@@ -416,7 +414,7 @@ body {
 }
 
 .top-site-outer.add-button .top-site-button:hover .icon-wrapper svg {
-  fill: var(--newtab-primary-action-background);
+  color: var(--newtab-primary-action-background);
 }
 
 /* ============================================================
@@ -430,7 +428,7 @@ body {
 .top-site-outer.drag-over .tile {
   outline: 2px solid var(--newtab-primary-action-background);
   outline-offset: 2px;
-  border-radius: var(--border-radius-medium);
+  border-radius: var(--border-radius-large);
 }
 
 /* ============================================================
@@ -521,7 +519,11 @@ body {
 }
 
 .btn-primary:hover {
-  background: color-mix(in srgb, var(--newtab-primary-action-background) 85%, #000);
+  background: color-mix(
+    in srgb,
+    var(--newtab-primary-action-background) 85%,
+    #000
+  );
 }
 
 .btn:disabled {
@@ -529,145 +531,3 @@ body {
   cursor: default;
 }
 
-/* ============================================================
-   Customize button (gear in bottom-right)
-   ============================================================ */
-
-.personalize-button-wrapper {
-  position: fixed;
-  bottom: var(--space-xlarge);
-  right: var(--space-xlarge);
-  z-index: 50;
-}
-
-.personalize-button {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--border-radius-small);
-  border: none;
-  background: var(--newtab-background-color-secondary);
-  box-shadow: 0 0.8px 1.6px 0 rgba(58, 57, 68, 20%);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--newtab-text-primary-color);
-  transition: background-color 150ms;
-}
-
-.personalize-button:hover {
-  background: var(--newtab-button-static-hover-background);
-}
-
-.personalize-button:focus-visible {
-  outline: 2px solid var(--newtab-primary-action-background);
-  outline-offset: 2px;
-}
-
-.personalize-button svg {
-  width: var(--icon-size-medium);
-  height: var(--icon-size-medium);
-  fill: currentColor;
-}
-
-/* ============================================================
-   Settings Panel (slide-in from right, Firefox-style)
-   ============================================================ */
-
-.settings-panel-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-}
-
-.settings-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 432px;
-  max-width: 100vw;
-  background: var(--newtab-background-color-secondary);
-  box-shadow: var(--shadow-large);
-  z-index: 201;
-  padding: var(--space-xxlarge);
-  overflow-y: auto;
-  animation: slideIn 250ms cubic-bezier(0.46, 0.03, 0.52, 0.96);
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.settings-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-xxlarge);
-}
-
-.settings-panel-header h2 {
-  font-size: var(--font-size-large);
-  font-weight: var(--font-weight-heading);
-}
-
-.settings-close-button {
-  width: var(--size-item-medium);
-  height: var(--size-item-medium);
-  border-radius: var(--border-radius-small);
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--newtab-text-primary-color);
-  transition: background-color 150ms;
-}
-
-.settings-close-button:hover {
-  background: var(--newtab-button-static-hover-background);
-}
-
-.settings-close-button svg {
-  width: var(--icon-size-default);
-  height: var(--icon-size-default);
-  fill: currentColor;
-}
-
-.setting-subsection {
-  margin-top: var(--space-medium);
-  padding-top: var(--space-medium);
-  border-top: 1px solid var(--newtab-element-secondary-color);
-}
-
-.setting-subsection h3 {
-  font-size: var(--font-size-root);
-  font-weight: var(--font-weight-heading);
-  margin-bottom: var(--space-xsmall);
-}
-
-.rows-selector {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xsmall);
-}
-
-.rows-selector label {
-  font-size: var(--font-size-small);
-  color: var(--newtab-text-secondary-color);
-}
-
-.rows-selector select {
-  padding: var(--space-xxsmall) var(--space-xsmall);
-  border: 1px solid var(--newtab-element-secondary-color);
-  border-radius: var(--border-radius-small);
-  background: var(--newtab-background-color);
-  color: var(--newtab-text-primary-color);
-  font-size: var(--font-size-small);
-}
