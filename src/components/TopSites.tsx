@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TopSitesProps {
   sites: TopSite[];
@@ -56,7 +57,10 @@ export function TopSites({
 
   return (
     <>
-      <div ref={gridRef}>
+      <div
+        ref={gridRef}
+        className="grid grid-cols-3 gap-y-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8"
+      >
         {visibleSites.map((site, i) => (
           <TopSiteTile
             key={`${site.url}-${i}`}
@@ -78,12 +82,16 @@ export function TopSites({
           />
         ))}
         {showAddButton && (
-          <>
-            <Button onClick={() => setEditModal({ mode: "add" })}>
-              <Plus size={20} />
-              Add shortcut
+          <div className="px-1">
+            <Button
+              variant="outline"
+              className="w-full no-underline border-dashed border-2 h-full aspect-square"
+              onClick={() => setEditModal({ mode: "add" })}
+            >
+              <Plus size={20} className="text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Add shortcut</span>
             </Button>
-          </>
+          </div>
         )}
       </div>
 
@@ -145,9 +153,7 @@ function TopSiteTile({
 
   const faviconUrl = faviconAttempts[faviconAttemptIndex];
   const showFallback =
-    faviconAttempts.length === 0 ||
-    faviconAttemptIndex >= faviconAttempts.length ||
-    !faviconUrl;
+    faviconAttempts.length === 0 || faviconAttemptIndex >= faviconAttempts.length || !faviconUrl;
 
   const advanceFavicon = useCallback(() => {
     setFaviconAttemptIndex((i) => i + 1);
@@ -176,11 +182,13 @@ function TopSiteTile({
 
   return (
     <div
+      className={`group relative px-1 ${dragOver ? "rounded-2xl outline-2 outline-primary outline-offset-2" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <a
+        className="no-underline"
         href={site.url}
         draggable
         onDragStart={(e) => {
@@ -192,54 +200,67 @@ function TopSiteTile({
           dragSourceIndex = null;
         }}
       >
-        {showFallback ? (
-          <Globe size={24} />
-        ) : (
-          <img
-            key={`${faviconAttemptIndex}-${faviconUrl}`}
-            src={faviconUrl}
-            alt=""
-            loading="lazy"
-            onError={advanceFavicon}
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              if (img.naturalWidth <= 16 && img.naturalHeight <= 16) {
-                advanceFavicon();
-              }
-            }}
-          />
-        )}
-        {site.pinned && <Pin size={12} />}
-        <span>{site.customTitle || site.title || getDomain(site.url)}</span>
+        <Card size="sm">
+          <CardContent className="flex flex-col items-center gap-1">
+            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted">
+              {showFallback ? (
+                <Globe size={24} className="text-muted-foreground" />
+              ) : (
+                <img
+                  key={`${faviconAttemptIndex}-${faviconUrl}`}
+                  className="size-8 rounded-sm"
+                  src={faviconUrl}
+                  alt=""
+                  loading="lazy"
+                  onError={advanceFavicon}
+                  onLoad={(e) => {
+                    const img = e.currentTarget;
+                    if (img.naturalWidth <= 16 && img.naturalHeight <= 16) {
+                      advanceFavicon();
+                    }
+                  }}
+                />
+              )}
+            </div>
+            <div className="flex max-w-20 items-center gap-0.5 text-center text-xs leading-tight">
+              {site.pinned && <Pin size={12} className="shrink-0" />}
+              <span className="truncate">
+                {site.customTitle || site.title || getDomain(site.url)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </a>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-xs" />}>
-          <Ellipsis size={16} />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={4}>
-          {site.pinned ? (
-            <DropdownMenuItem onClick={onUnpin}>
-              <Pin size={16} />
-              Unpin
+      <div className="absolute top-1 right-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="outline" size="icon-xs" />}>
+            <Ellipsis size={16} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" sideOffset={4}>
+            {site.pinned ? (
+              <DropdownMenuItem onClick={onUnpin}>
+                <Pin size={16} />
+                Unpin
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={onPin}>
+                <Pin size={16} />
+                Pin
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil size={16} />
+              Edit
             </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={onPin}>
-              <Pin size={16} />
-              Pin
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={onRemove}>
+              <Trash2 size={16} />
+              Dismiss
             </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={onEdit}>
-            <Pencil size={16} />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onClick={onRemove}>
-            <Trash2 size={16} />
-            Dismiss
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }

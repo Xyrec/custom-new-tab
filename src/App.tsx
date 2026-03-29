@@ -36,33 +36,31 @@ export default function App() {
   };
 
   return (
-    <>
-      <TopSites
-        sites={sites}
-        onPin={pinSite}
-        onUnpin={unpinSite}
-        onRemove={removeSite}
-        onEdit={editSite}
-        onAdd={addSite}
-        onMove={moveSite}
-      />
+    <div className="flex min-h-screen w-full items-center justify-center p-6">
+      <div className="w-full max-w-4xl">
+        <TopSites
+          sites={sites}
+          onPin={pinSite}
+          onUnpin={unpinSite}
+          onRemove={removeSite}
+          onEdit={editSite}
+          onAdd={addSite}
+          onMove={moveSite}
+        />
+      </div>
 
-      <ModeToggle />
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => fileRef.current?.click()}
-        title="Import from Firefox (prefs.js)"
-      >
-        <Import size={20} />
-      </Button>
-      <input
-        ref={fileRef}
-        type="file"
-        accept=".js"
-        onChange={handleImport}
-        hidden
-      />
-    </>
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+        <ModeToggle />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => fileRef.current?.click()}
+          title="Import from Firefox (prefs.js)"
+        >
+          <Import size={20} />
+        </Button>
+        <input ref={fileRef} type="file" accept=".js" onChange={handleImport} hidden />
+      </div>
+    </div>
   );
 }
